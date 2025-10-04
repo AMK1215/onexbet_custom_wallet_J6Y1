@@ -258,8 +258,8 @@ class WithdrawController extends Controller
                     $decimalPlaces = $this->getDecimalPlaces($request->currency);
                     $formattedBalanceValue = $this->formatBalance($currentBalance, $request->currency);
                     
-                    // Format the balance as a float with proper decimal places
-                    $formattedBalance = round($formattedBalanceValue, $decimalPlaces);
+                    // Format the balance as an integer (no decimal places)
+                    $formattedBalance = (int) round($formattedBalanceValue);
                     
                     $responseData[] = [
                         'member_account' => $memberAccount,
@@ -335,8 +335,8 @@ class WithdrawController extends Controller
                             $decimalPlaces = $this->getDecimalPlaces($request->currency);
                             $formattedBalanceValue = $this->formatBalance($beforeTransactionBalance, $request->currency);
                             
-                            // Format the balance as a float with proper decimal places
-                            $formattedBalance = round($formattedBalanceValue, $decimalPlaces);
+                            // Format the balance as an integer (no decimal places)
+                            $formattedBalance = (int) round($formattedBalanceValue);
                             
                             $responseData[] = [
                                 'member_account' => $memberAccount,
@@ -365,15 +365,15 @@ class WithdrawController extends Controller
                         $beforeBalanceValue = $this->formatBalance($beforeTransactionBalance, $request->currency);
                         $afterBalanceValue = $this->formatBalance($newBalance, $request->currency);
 
-                        // Format the balance values as floats with proper decimal places
-                        $beforeBalanceFormatted = round($beforeBalanceValue, $decimalPlaces);
-                        $afterBalanceFormatted = round($afterBalanceValue, $decimalPlaces);
+                        // Format the balance values as integers (no decimal places)
+                        $beforeBalanceFormatted = (int) round($beforeBalanceValue);
+                        $afterBalanceFormatted = (int) round($afterBalanceValue);
 
                         $responseData[] = [
                             'member_account' => $memberAccount,
                             'product_code' => (int) $productCode,
-                            'before_balance' => $beforeBalanceFormatted, // <-- Will be a JSON number (float)
-                            'balance' => $afterBalanceFormatted,         // <-- Will be a JSON number (float)
+                            'before_balance' => $beforeBalanceFormatted, // <-- Will be a JSON integer
+                            'balance' => $afterBalanceFormatted,         // <-- Will be a JSON integer
                             'code' => $transactionCode,
                             'message' => $transactionMessage,
                             'transaction_id' => $transactionId,
@@ -420,14 +420,14 @@ class WithdrawController extends Controller
         $decimalPlaces = $this->getDecimalPlaces($currency);
         $formattedBalanceValue = $this->formatBalance($balance, $currency); // Use the formatted float value
         
-        // Format the balance as a float with proper decimal places
-        $finalBalance = round($formattedBalanceValue, $decimalPlaces);
+        // Format the balance as an integer (no decimal places)
+        $finalBalance = (int) round($formattedBalanceValue);
         
         return [
             'member_account' => $memberAccount,
             'product_code' => (int) $productCode, // Ensure it's an int
-            'before_balance' => $finalBalance,    // <-- Will be a JSON number (float)
-            'balance' => $finalBalance,          // <-- Will be a JSON number (float)
+            'before_balance' => $finalBalance,    // <-- Will be a JSON integer
+            'balance' => $finalBalance,          // <-- Will be a JSON integer
             'code' => $code->value,
             'message' => $message,
         ];

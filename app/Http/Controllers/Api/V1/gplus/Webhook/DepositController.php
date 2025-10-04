@@ -280,15 +280,15 @@ class DepositController extends Controller
                         $beforeBalanceValue = round($beforeTransactionBalance / $this->getCurrencyValue($request->currency), $decimalPlaces);
                         $afterBalanceValue = round($afterTransactionBalance / $this->getCurrencyValue($request->currency), $decimalPlaces);
                         
-                        // Format the balance values as floats with proper decimal places
-                        $beforeBalanceFormatted = round($beforeBalanceValue, $decimalPlaces);
-                        $afterBalanceFormatted = round($afterBalanceValue, $decimalPlaces);
+                        // Format the balance values as integers (no decimal places)
+                        $beforeBalanceFormatted = (int) round($beforeBalanceValue);
+                        $afterBalanceFormatted = (int) round($afterBalanceValue);
                         
                         $results[] = [
                             'member_account' => $memberAccount,
                             'product_code' => (int) $productCode,
-                            'before_balance' => $beforeBalanceFormatted, // <-- Will be a JSON number (float)
-                            'balance' => $afterBalanceFormatted,         // <-- Will be a JSON number (float)
+                            'before_balance' => $beforeBalanceFormatted, // <-- Will be a JSON integer
+                            'balance' => $afterBalanceFormatted,         // <-- Will be a JSON integer
                             'code' => SeamlessWalletCode::Success->value,
                             'message' => '',
                         ];
@@ -332,14 +332,14 @@ class DepositController extends Controller
         $decimalPlaces = in_array($currency, ['IDR2', 'KRW2', 'MMK2', 'VND2', 'LAK2', 'KHR2']) ? 4 : 2;
         $formattedBalanceValue = round($balance / $this->getCurrencyValue($currency), $decimalPlaces);
 
-        // Format the balance as a float with proper decimal places
-        $finalBalance = round($formattedBalanceValue, $decimalPlaces);
+        // Format the balance as an integer (no decimal places)
+        $finalBalance = (int) round($formattedBalanceValue);
 
         return [
             'member_account' => $memberAccount,
             'product_code' => (int) $productCode,
-            'before_balance' => $finalBalance,    // <-- Will be a JSON number (float)
-            'balance' => $finalBalance,          // <-- Will be a JSON number (float)
+            'before_balance' => $finalBalance,    // <-- Will be a JSON integer
+            'balance' => $finalBalance,          // <-- Will be a JSON integer
             'code' => $code->value,
             'message' => $message,
         ];

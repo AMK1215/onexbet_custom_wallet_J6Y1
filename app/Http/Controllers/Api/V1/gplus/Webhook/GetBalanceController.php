@@ -75,14 +75,13 @@ class GetBalanceController extends Controller
                     $balance = round($balance, 2);
                 }
                 
-                // Format balance with proper decimal places
-                $decimalPlaces = in_array($request->currency, $specialCurrencies) ? 4 : 2;
-                $balanceValue = round($balance, $decimalPlaces);
+                // Format balance as integer (no decimal places)
+                $balanceValue = (int) round($balance);
                 
                 $results[] = [
                     'member_account' => $req['member_account'],
                     'product_code' => $req['product_code'],
-                    'balance' => $balanceValue, // Return as numeric float
+                    'balance' => $balanceValue, // Return as integer
                     'code' => \App\Enums\SeamlessWalletCode::Success->value,
                     'message' => 'Success',
                 ];
@@ -90,7 +89,7 @@ class GetBalanceController extends Controller
                 $results[] = [
                     'member_account' => $req['member_account'],
                     'product_code' => $req['product_code'],
-                    'balance' => (float) 0.00,
+                    'balance' => 0,
                     'code' => \App\Enums\SeamlessWalletCode::MemberNotExist->value,
                     'message' => 'Member not found',
                 ];
