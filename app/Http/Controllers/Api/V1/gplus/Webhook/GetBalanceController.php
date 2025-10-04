@@ -33,7 +33,7 @@ class GetBalanceController extends Controller
         $isValidSign = strtolower($request->sign) === strtolower($expectedSign);
 
         // Allowed currencies
-       
+        // $allowedCurrencies = ['MMK', 'VND', 'INR', 'MYR', 'AOA', 'EUR', 'IDR', 'PHP', 'THB', 'JPY', 'COP', 'IRR', 'CHF', 'USD', 'MXN', 'ETB', 'CAD', 'BRL', 'NGN', 'KES', 'KRW', 'TND', 'LBP', 'BDT', 'CZK', 'IDR2', 'KRW2', 'MMK2', 'VND2', 'LAK2', 'KHR2'];
 
         $allowedCurrencies = ['MMK', 'IDR', 'IDR2', 'KRW2', 'MMK2', 'VND2', 'LAK2', 'KHR2'];
         $isValidCurrency = in_array($request->currency, $allowedCurrencies);
@@ -65,9 +65,9 @@ class GetBalanceController extends Controller
                 continue;
             }
 
-            $user = User::where('user_name', $req['member_account'])->first();
-            if ($user) {
-                $balance = $user->balance; // Using custom wallet balance instead of $user->wallet->balanceFloat
+            $user = User::with('wallet')->where('user_name', $req['member_account'])->first();
+            if ($user && $user->wallet) {
+                $balance = $user->balance;
                 if (in_array($request->currency, $specialCurrencies)) {
                     $balance = $balance / 1000; // Apply 1:1000 conversion here
                     $balance = round($balance, 4);
