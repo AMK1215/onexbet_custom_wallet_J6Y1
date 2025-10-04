@@ -163,84 +163,84 @@ class WithdrawController extends Controller
             }
 
             // Iterate through individual transactions within the batch
-            foreach ($batchRequest['transactions'] ?? [] as $tx) {
-                $transactionId = $tx['id'] ?? null;
-                $action = strtoupper($tx['action'] ?? '');
-                $amount = floatval($tx['amount'] ?? 0); // Ensure amount is float for calculations
-                $wagerCode = $tx['wager_code'] ?? $tx['round_id'] ?? null;
-                $gameCode = $tx['game_code'] ?? null;
+                foreach ($batchRequest['transactions'] ?? [] as $tx) {
+                    $transactionId = $tx['id'] ?? null;
+                    $action = strtoupper($tx['action'] ?? '');
+                    $amount = floatval($tx['amount'] ?? 0); // Ensure amount is float for calculations
+                    $wagerCode = $tx['wager_code'] ?? $tx['round_id'] ?? null;
+                    $gameCode = $tx['game_code'] ?? null;
                 $transactionCode = SeamlessWalletCode::Success->value; // Default to success
                 $transactionMessage = 'Transaction processed successfully';
 
-                // Determine game_type, prioritizing batchRequest, then DB lookup
-                $transactionGameType = $batchRequest['game_type'] ?? null;
-                if (empty($transactionGameType) && $gameCode) {
-                    $transactionGameType = GameList::where('game_code', $gameCode)->value('game_type');
-                }
+                    // Determine game_type, prioritizing batchRequest, then DB lookup
+                    $transactionGameType = $batchRequest['game_type'] ?? null;
+                    if (empty($transactionGameType) && $gameCode) {
+                        $transactionGameType = GameList::where('game_code', $gameCode)->value('game_type');
+                    }
 
-                if (empty($transactionGameType)) {
-                    Log::warning('Missing game_type from batch_request and fallback lookup for withdraw', [
-                        'member_account' => $memberAccount,
+                    if (empty($transactionGameType)) {
+                        Log::warning('Missing game_type from batch_request and fallback lookup for withdraw', [
+                            'member_account' => $memberAccount,
+                            'product_code' => $productCode,
+                            'game_code' => $gameCode,
+                            'transaction_id' => $transactionId,
+                        ]);
+                        $responseData[] = $this->buildErrorResponse(
+                            $memberAccount,
+                            $productCode,
+                            $currentBalance,
+                            SeamlessWalletCode::InternalServerError,
+                            'Missing game_type',
+                            $request->currency
+                        );
+                    // Pass $memberAccount to logPlaceBet to ensure it's logged
+                        $this->logPlaceBet($batchRequest, $request, $tx, 'failed', $request->request_time, 'Missing game_type', $currentBalance, $currentBalance);
+                        continue;
+                    }
+
+                    // Check for crucial missing data for an individual transaction
+                    if (! $transactionId || empty($action)) { // Amount can be 0 or negative for certain actions
+                        Log::warning('Missing crucial data in transaction for withdraw/bet', ['tx' => $tx]);
+                    // Pass $memberAccount to logPlaceBet to ensure it's logged
+                        $this->logPlaceBet($batchRequest, $request, $tx, 'failed', $request->request_time, 'Missing transaction data (id or action)', $currentBalance, $currentBalance);
+                        $responseData[] = $this->buildErrorResponse($memberAccount, $productCode, $currentBalance, SeamlessWalletCode::InternalServerError, 'Missing transaction data (id or action)', $request->currency);
+                        continue;
+                    }
+
+                    // Convert amount based on currency for internal processing (always positive for withdrawal amount)
+                    $convertedAmount = abs($this->toDecimalPlaces($amount * $this->getCurrencyValue($request->currency)));
+
+                    // Meta data for wallet transaction and logging
+                    $meta = [
+                        'seamless_transaction_id' => $transactionId,
+                        'action_type' => $action,
                         'product_code' => $productCode,
+                        'wager_code' => $wagerCode,
+                        'round_id' => $tx['round_id'] ?? null,
                         'game_code' => $gameCode,
-                        'transaction_id' => $transactionId,
-                    ]);
-                    $responseData[] = $this->buildErrorResponse(
-                        $memberAccount,
-                        $productCode,
-                        $currentBalance,
-                        SeamlessWalletCode::InternalServerError,
-                        'Missing game_type',
-                        $request->currency
-                    );
-                    // Pass $memberAccount to logPlaceBet to ensure it's logged
-                    $this->logPlaceBet($batchRequest, $request, $tx, 'failed', $request->request_time, 'Missing game_type', $currentBalance, $currentBalance);
-                    continue;
-                }
+                        'game_type' => $transactionGameType, // Ensure game_type is passed to meta
+                        'channel_code' => $tx['channel_code'] ?? null,
+                        'raw_payload' => $tx,
+                    ];
 
-                // Check for crucial missing data for an individual transaction
-                if (! $transactionId || empty($action)) { // Amount can be 0 or negative for certain actions
-                    Log::warning('Missing crucial data in transaction for withdraw/bet', ['tx' => $tx]);
-                    // Pass $memberAccount to logPlaceBet to ensure it's logged
-                    $this->logPlaceBet($batchRequest, $request, $tx, 'failed', $request->request_time, 'Missing transaction data (id or action)', $currentBalance, $currentBalance);
-                    $responseData[] = $this->buildErrorResponse($memberAccount, $productCode, $currentBalance, SeamlessWalletCode::InternalServerError, 'Missing transaction data (id or action)', $request->currency);
-                    continue;
-                }
-
-                // Convert amount based on currency for internal processing (always positive for withdrawal amount)
-                $convertedAmount = abs($this->toDecimalPlaces($amount * $this->getCurrencyValue($request->currency)));
-
-                // Meta data for wallet transaction and logging
-                $meta = [
-                    'seamless_transaction_id' => $transactionId,
-                    'action_type' => $action,
-                    'product_code' => $productCode,
-                    'wager_code' => $wagerCode,
-                    'round_id' => $tx['round_id'] ?? null,
-                    'game_code' => $gameCode,
-                    'game_type' => $transactionGameType, // Ensure game_type is passed to meta
-                    'channel_code' => $tx['channel_code'] ?? null,
-                    'raw_payload' => $tx,
-                ];
-
-                // Check for duplicate transactions (idempotency)
-                $isDuplicate = PlaceBet::where('transaction_id', $transactionId)->exists() ||
+                    // Check for duplicate transactions (idempotency)
+                    $isDuplicate = PlaceBet::where('transaction_id', $transactionId)->exists() ||
                                CustomTransaction::whereJsonContains('meta->seamless_transaction_id', $transactionId)->exists();
 
-                if ($isDuplicate) {
-                    Log::warning('Duplicate transaction ID detected for withdraw/bet', ['tx_id' => $transactionId, 'member_account' => $memberAccount, 'action' => $action]);
+                    if ($isDuplicate) {
+                        Log::warning('Duplicate transaction ID detected for withdraw/bet', ['tx_id' => $transactionId, 'member_account' => $memberAccount, 'action' => $action]);
                     // Pass $memberAccount to logPlaceBet to ensure it's logged
-                    $this->logPlaceBet($batchRequest, $request, $tx, 'duplicate', $request->request_time, 'Duplicate transaction', $currentBalance, $currentBalance);
-                    $responseData[] = $this->buildErrorResponse($memberAccount, $productCode, $currentBalance, SeamlessWalletCode::DuplicateTransaction, 'Duplicate transaction', $request->currency);
-                    continue;
-                }
+                        $this->logPlaceBet($batchRequest, $request, $tx, 'duplicate', $request->request_time, 'Duplicate transaction', $currentBalance, $currentBalance);
+                        $responseData[] = $this->buildErrorResponse($memberAccount, $productCode, $currentBalance, SeamlessWalletCode::DuplicateTransaction, 'Duplicate transaction', $request->currency);
+                        continue;
+                    }
 
-                // Ensure action is a valid debit action for this controller
-                if (! in_array($action, $this->debitActions)) {
-                    Log::warning('Unsupported action type received on withdraw endpoint', ['transaction_id' => $transactionId, 'action' => $action]);
+                    // Ensure action is a valid debit action for this controller
+                    if (! in_array($action, $this->debitActions)) {
+                        Log::warning('Unsupported action type received on withdraw endpoint', ['transaction_id' => $transactionId, 'action' => $action]);
                     // Pass $memberAccount to logPlaceBet to ensure it's logged
-                    $this->logPlaceBet($batchRequest, $request, $tx, 'failed', $request->request_time, 'Unsupported action type for this endpoint: '.$action, $currentBalance, $currentBalance);
-                    $responseData[] = $this->buildErrorResponse($memberAccount, $productCode, $currentBalance, SeamlessWalletCode::InternalServerError, 'Unsupported action type: '.$action, $request->currency);
+                        $this->logPlaceBet($batchRequest, $request, $tx, 'failed', $request->request_time, 'Unsupported action type for this endpoint: '.$action, $currentBalance, $currentBalance);
+                        $responseData[] = $this->buildErrorResponse($memberAccount, $productCode, $currentBalance, SeamlessWalletCode::InternalServerError, 'Unsupported action type: '.$action, $request->currency);
                     continue;
                 }
 
@@ -263,14 +263,14 @@ class WithdrawController extends Controller
                         'code' => SeamlessWalletCode::Success->value, // Still success for processing the request
                         'message' => 'Processed with zero amount, no balance change.',
                     ];
-                    continue;
-                }
+                        continue;
+                    }
 
-                // Transaction-specific logic
-                DB::beginTransaction();
-                try {
-                    // Re-fetch user with wallet lock for concurrency safety
-                    $user->refresh(); // Refresh user model to get latest balance
+                    // Transaction-specific logic
+                    DB::beginTransaction();
+                    try {
+                        // Re-fetch user with wallet lock for concurrency safety
+                        $user->refresh(); // Refresh user model to get latest balance
                     $userWithWallet = User::where('id', $user->id)->lockForUpdate()->first();
 
                     if (!$userWithWallet) {
@@ -280,7 +280,7 @@ class WithdrawController extends Controller
                     $beforeTransactionBalance = $userWithWallet->balance;
 
                     Log::info('WithdrawController: Checking balance for insufficient funds (pre-deduction)', [
-                        'member_account' => $memberAccount,
+                            'member_account' => $memberAccount,
                         'current_balance' => $userWithWallet->balance,
                         'amount_to_deduct' => $convertedAmount,
                         'action' => $action
@@ -317,39 +317,39 @@ class WithdrawController extends Controller
                     //     continue; // Skip to next transaction in batch
                     // }
 
-                    if ($beforeTransactionBalance < $convertedAmount) {
-                        $transactionCode = SeamlessWalletCode::InsufficientBalance->value;
-                        $transactionMessage = 'Insufficient balance';
-                        $this->logPlaceBet(
-                            $batchRequest, $request, $tx, 'failed',
-                            $request->request_time, $transactionMessage,
-                            $beforeTransactionBalance, $beforeTransactionBalance
-                        );
-                        DB::rollBack(); // Or commit, but rollback is more "traditional" if nothing changed
-                        $responseData[] = [
-                            'member_account' => $memberAccount,
-                            'product_code' => (int) $productCode,
-                            'before_balance' => $this->formatBalance($beforeTransactionBalance, $request->currency),
-                            'balance' => $this->formatBalance($beforeTransactionBalance, $request->currency),
-                            'code' => $transactionCode,
-                            'message' => $transactionMessage,
-                        ];
+                        if ($beforeTransactionBalance < $convertedAmount) {
+                            $transactionCode = SeamlessWalletCode::InsufficientBalance->value;
+                            $transactionMessage = 'Insufficient balance';
+                            $this->logPlaceBet(
+                                $batchRequest, $request, $tx, 'failed',
+                                $request->request_time, $transactionMessage,
+                                $beforeTransactionBalance, $beforeTransactionBalance
+                            );
+                            DB::rollBack(); // Or commit, but rollback is more "traditional" if nothing changed
+                            $responseData[] = [
+                                'member_account' => $memberAccount,
+                                'product_code' => (int) $productCode,
+                                'before_balance' => $this->formatBalance($beforeTransactionBalance, $request->currency),
+                                'balance' => $this->formatBalance($beforeTransactionBalance, $request->currency),
+                                'code' => $transactionCode,
+                                'message' => $transactionMessage,
+                            ];
 
-                        continue;
-                    }
+                            continue;
+                        }
 
                     // Perform the withdrawal through wallet service
                     // Bavix\Wallet's withdraw method will throw InsufficientFunds if the internal balance check fails
-                    $this->walletService->withdraw($userWithWallet, $convertedAmount, TransactionName::Withdraw, $meta);
+                        $this->walletService->withdraw($userWithWallet, $convertedAmount, TransactionName::Withdraw, $meta);
                     $newBalance = $userWithWallet->balance;
 
-                    $transactionCode = SeamlessWalletCode::Success->value;
-                    $transactionMessage = 'Transaction processed successfully';
+                        $transactionCode = SeamlessWalletCode::Success->value;
+                        $transactionMessage = 'Transaction processed successfully';
                     // Pass $memberAccount to logPlaceBet to ensure it's logged
-                    $this->logPlaceBet($batchRequest, $request, $tx, 'completed', $request->request_time, $transactionMessage, $beforeTransactionBalance, $newBalance);
+                        $this->logPlaceBet($batchRequest, $request, $tx, 'completed', $request->request_time, $transactionMessage, $beforeTransactionBalance, $newBalance);
 
-                    DB::commit();
-                    $currentBalance = $newBalance; // Update current balance for next transaction in the batch
+                        DB::commit();
+                        $currentBalance = $newBalance; // Update current balance for next transaction in the batch
 
                 } catch (QueryException $e) { // Catch database-specific errors
                     DB::rollBack();
@@ -360,7 +360,7 @@ class WithdrawController extends Controller
                     $this->logPlaceBet($batchRequest, $request, $tx, 'failed', $request->request_time, $transactionMessage, $beforeTransactionBalance, $currentBalance);
 
                 } catch (Exception $e) { // Catch all other generic exceptions
-                    DB::rollBack();
+                        DB::rollBack();
                     // Check if it's an insufficient balance error
                     if (str_contains($e->getMessage(), 'Insufficient balance')) {
                         $transactionCode = SeamlessWalletCode::InsufficientBalance->value;
@@ -373,9 +373,9 @@ class WithdrawController extends Controller
                     }
                     // Pass $memberAccount to logPlaceBet to ensure it's logged
                     $this->logPlaceBet($batchRequest, $request, $tx, 'failed', $request->request_time, $transactionMessage, $beforeTransactionBalance, $currentBalance);
-                }
+                    }
 
-                // Add the response for the current transaction
+                    // Add the response for the current transaction
                 // This block ensures a response is always added for each transaction,
                 // even if 'continue' was called earlier after building a specific response.
                 // We need to ensure we don't add duplicate responses for the same transaction.

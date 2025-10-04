@@ -307,11 +307,19 @@ class User extends Authenticatable
     // Custom Wallet Methods (replacing Laravel Wallet package)
     
     /**
-     * Get wallet balance as float
+     * Get balance attribute as float
+     */
+    public function getBalanceAttribute($value): float
+    {
+        return (float) $value;
+    }
+
+    /**
+     * Get wallet balance as float (alias for balance)
      */
     public function getBalanceFloatAttribute(): float
     {
-        return (float) $this->balance;
+        return (float) $this->getAttributes()['balance'] ?? 0.0;
     }
 
     /**
