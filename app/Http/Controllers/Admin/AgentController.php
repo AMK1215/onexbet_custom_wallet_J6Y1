@@ -154,7 +154,7 @@ class AgentController extends Controller
         $inputs = $request->validated();
 
         // Check if owner has sufficient balance for transfer
-        if (isset($inputs['amount']) && $inputs['amount'] > $owner->balanceFloat) {
+        if (isset($inputs['amount']) && $inputs['amount'] > $owner->balance) {
             return redirect()->back()->with('error', 'Balance Insufficient');
         }
 
@@ -188,8 +188,8 @@ class AgentController extends Controller
                     $transfer_amount,
                     TransactionName::CreditTransfer,
                     [
-                        'old_balance' => $agent->balanceFloat,
-                        'new_balance' => $agent->balanceFloat + $transfer_amount,
+                        'old_balance' => $agent->balance,
+                        'new_balance' => $agent->balance + $transfer_amount,
                     ]
                 );
 
@@ -202,8 +202,8 @@ class AgentController extends Controller
                     'description' => 'Initial Top Up from Owner to new agent',
                     'meta' => [
                         'transaction_type' => TransactionName::CreditTransfer->value,
-                        'old_balance' => $agent->balanceFloat,
-                        'new_balance' => $agent->balanceFloat + $transfer_amount,
+                        'old_balance' => $agent->balance,
+                        'new_balance' => $agent->balance + $transfer_amount,
                     ],
                 ]);
 
@@ -288,7 +288,7 @@ class AgentController extends Controller
         try {
             $agent = User::findOrFail($id);
             $admin = Auth::user();
-            if ($request->amount > $admin->balanceFloat) {
+            if ($request->amount > $admin->balance) {
                 throw new \Exception('You do not have enough balance to transfer!');
             }
 
@@ -299,8 +299,8 @@ class AgentController extends Controller
                 TransactionName::CreditTransfer,
                 [
                     'note' => $request->note,
-                    'old_balance' => $agent->balanceFloat,
-                    'new_balance' => $agent->balanceFloat + $request->amount,
+                    'old_balance' => $agent->balance,
+                    'new_balance' => $agent->balance + $request->amount,
                 ]
             );
 
@@ -313,8 +313,8 @@ class AgentController extends Controller
                 'description' => $request->note ?? 'TopUp from owner to '.$agent->user_name,
                 'meta' => [
                     'transaction_type' => TransactionName::CreditTransfer->value,
-                    'old_balance' => $agent->balanceFloat,
-                    'new_balance' => $agent->balanceFloat + $request->amount,
+                    'old_balance' => $agent->balance,
+                    'new_balance' => $agent->balance + $request->amount,
                 ],
             ]);
 
@@ -335,7 +335,7 @@ class AgentController extends Controller
             $admin = Auth::user();
             $cashOut = $request->amount;
 
-            if ($cashOut > $agent->balanceFloat) {
+            if ($cashOut > $agent->balance) {
                 return redirect()->back()->with('error', 'You do not have enough balance to transfer!');
             }
 
@@ -347,8 +347,8 @@ class AgentController extends Controller
                 TransactionName::DebitTransfer,
                 [
                     'note' => $request->note,
-                    'old_balance' => $agent->balanceFloat,
-                    'new_balance' => $agent->balanceFloat - $request->amount,
+                    'old_balance' => $agent->balance,
+                    'new_balance' => $agent->balance - $request->amount,
                 ]
             );
 
@@ -361,8 +361,8 @@ class AgentController extends Controller
                 'description' => $request->note ?? 'Withdraw from '.$agent->user_name.' to owner',
                 'meta' => [
                     'transaction_type' => TransactionName::DebitTransfer->value,
-                    'old_balance' => $agent->balanceFloat,
-                    'new_balance' => $agent->balanceFloat - $request->amount,
+                    'old_balance' => $agent->balance,
+                    'new_balance' => $agent->balance - $request->amount,
                 ],
             ]);
 

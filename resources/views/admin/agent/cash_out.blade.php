@@ -39,7 +39,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label>Current Balance<span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" name="" value="{{number_format($agent->wallet->balanceFloat, 2)}}" readonly>
+                                    <input type="text" class="form-control" name="" value="{{number_format($agent->balance, 2)}}" readonly>
                                 </div>
                                 <div class="form-group">
                                     <label>Amount<span class="text-danger">*</span></label>

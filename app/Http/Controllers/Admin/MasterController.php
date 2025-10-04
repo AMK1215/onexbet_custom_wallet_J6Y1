@@ -118,7 +118,7 @@ class MasterController extends Controller
             ]
         );
 
-        if (isset($inputs['amount']) && $inputs['amount'] > $admin->balanceFloat) {
+        if (isset($inputs['amount']) && $inputs['amount'] > $admin->balance) {
             throw ValidationException::withMessages([
                 'amount' => 'Insufficient balance for transfer.',
             ]);
@@ -136,8 +136,8 @@ class MasterController extends Controller
                 $inputs['amount'],
                 TransactionName::CreditTransfer,
                 [
-                    'old_balance' => $user->balanceFloat,
-                    'new_balance' => $user->balanceFloat + $request->amount,
+                    'old_balance' => $user->balance,
+                    'new_balance' => $user->balance + $request->amount,
                 ]
             );
         }
@@ -148,11 +148,11 @@ class MasterController extends Controller
             'amount' => $inputs['amount'] ?? 0,
             'type' => 'top_up',
             'description' => 'Initial Top Up from Owner to new Master',
-            'meta' => [
-                'transaction_type' => TransactionName::CreditTransfer->value,
-                'old_balance' => $user->balanceFloat,
-                'new_balance' => $user->balanceFloat + $inputs['amount'],
-            ],
+                'meta' => [
+                    'transaction_type' => TransactionName::CreditTransfer->value,
+                    'old_balance' => $user->balance,
+                    'new_balance' => $user->balance + $inputs['amount'],
+                ],
         ]);
 
         session()->forget('user_name');
@@ -258,7 +258,7 @@ class MasterController extends Controller
         try {
             $agent = User::findOrFail($id);
             $admin = Auth::user();
-            if ($request->amount > $admin->balanceFloat) {
+            if ($request->amount > $admin->balance) {
                 throw new \Exception('You do not have enough balance to transfer!');
             }
 
@@ -269,8 +269,8 @@ class MasterController extends Controller
                 TransactionName::CreditTransfer,
                 [
                     'note' => $request->note,
-                    'old_balance' => $agent->balanceFloat,
-                    'new_balance' => $agent->balanceFloat + $request->amount,
+                    'old_balance' => $agent->balance,
+                    'new_balance' => $agent->balance + $request->amount,
                 ]
             );
 
@@ -283,8 +283,8 @@ class MasterController extends Controller
                 'description' => $request->note ?? 'TopUp from owner to '.$agent->user_name,
                 'meta' => [
                     'transaction_type' => TransactionName::CreditTransfer->value,
-                    'old_balance' => $agent->balanceFloat,
-                    'new_balance' => $agent->balanceFloat + $request->amount,
+                    'old_balance' => $agent->balance,
+                    'new_balance' => $agent->balance + $request->amount,
                 ],
             ]);
 
@@ -306,7 +306,7 @@ class MasterController extends Controller
             $admin = Auth::user();
             $cashOut = $request->amount;
 
-            if ($cashOut > $agent->balanceFloat) {
+            if ($cashOut > $agent->balance) {
                 return redirect()->back()->with('error', 'You do not have enough balance to transfer!');
             }
 
@@ -318,8 +318,8 @@ class MasterController extends Controller
                 TransactionName::DebitTransfer,
                 [
                     'note' => $request->note,
-                    'old_balance' => $agent->balanceFloat,
-                    'new_balance' => $agent->balanceFloat - $request->amount,
+                    'old_balance' => $agent->balance,
+                    'new_balance' => $agent->balance - $request->amount,
                 ]
             );
 
@@ -332,8 +332,8 @@ class MasterController extends Controller
                 'description' => $request->note ?? 'Withdraw from '.$agent->user_name.' to owner',
                 'meta' => [
                     'transaction_type' => TransactionName::DebitTransfer->value,
-                    'old_balance' => $agent->balanceFloat,
-                    'new_balance' => $agent->balanceFloat - $request->amount,
+                    'old_balance' => $agent->balance,
+                    'new_balance' => $agent->balance - $request->amount,
                 ],
             ]);
 

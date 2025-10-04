@@ -426,7 +426,7 @@ class SubAccountController extends Controller
 
             $cashIn = $inputs['amount'];
 
-            if ($cashIn > $agent->balanceFloat) {
+            if ($cashIn > $agent->balance) {
 
                 return redirect()->back()->with('error', 'You do not have enough balance to transfer!');
             }
@@ -434,8 +434,8 @@ class SubAccountController extends Controller
             app(WalletService::class)->transfer($agent, $player, $request->validated('amount'),
                 TransactionName::CreditTransfer, [
                     'note' => $request->note,
-                    'old_balance' => $player->balanceFloat,
-                    'new_balance' => $player->balanceFloat + $request->amount,
+                    'old_balance' => $player->balance,
+                    'new_balance' => $player->balance + $request->amount,
                 ]);
             // Log the transfer
             TransferLog::create([
@@ -449,8 +449,8 @@ class SubAccountController extends Controller
                 'meta' => [
                     'transaction_type' => TransactionName::Deposit->value,
                     'note' => $request->note,
-                    'old_balance' => $player->balanceFloat,
-                    'new_balance' => $player->balanceFloat + $request->amount,
+                    'old_balance' => $player->balance,
+                    'new_balance' => $player->balance + $request->amount,
                 ],
             ]);
 
@@ -496,7 +496,7 @@ class SubAccountController extends Controller
 
             $cashOut = $inputs['amount'];
 
-            if ($cashOut > $player->balanceFloat) {
+            if ($cashOut > $player->balance) {
 
                 return redirect()->back()->with('error', 'You do not have enough balance to transfer!');
             }
@@ -504,8 +504,8 @@ class SubAccountController extends Controller
             app(WalletService::class)->transfer($player, $agent, $request->validated('amount'),
                 TransactionName::DebitTransfer, [
                     'note' => $request->note,
-                    'old_balance' => $player->balanceFloat,
-                    'new_balance' => $player->balanceFloat - $request->amount,
+                    'old_balance' => $player->balance,
+                    'new_balance' => $player->balance - $request->amount,
                 ]);
             // Log the transfer
             TransferLog::create([
@@ -519,8 +519,8 @@ class SubAccountController extends Controller
                 'meta' => [
                     'transaction_type' => TransactionName::Withdraw->value,
                     'note' => $request->note,
-                    'old_balance' => $player->balanceFloat,
-                    'new_balance' => $player->balanceFloat - $request->amount,
+                    'old_balance' => $player->balance,
+                    'new_balance' => $player->balance - $request->amount,
                 ],
             ]);
 
@@ -620,7 +620,7 @@ class SubAccountController extends Controller
 
         try {
             DB::beginTransaction();
-            if (isset($inputs['amount']) && $inputs['amount'] > $agent->balanceFloat) {
+            if (isset($inputs['amount']) && $inputs['amount'] > $agent->balance) {
                 return redirect()->back()->with('error', 'Balance Insufficient');
             }
 
@@ -638,8 +638,8 @@ class SubAccountController extends Controller
             if (isset($inputs['amount'])) {
                 app(WalletService::class)->transfer($agent, $user, $inputs['amount'],
                     TransactionName::CreditTransfer, [
-                        'old_balance' => $user->balanceFloat,
-                        'new_balance' => $user->balanceFloat + $request->amount,
+                        'old_balance' => $user->balance,
+                        'new_balance' => $user->balance + $request->amount,
                     ]);
             }
 
@@ -652,8 +652,8 @@ class SubAccountController extends Controller
                 'description' => 'Initial Top Up from agent to new player',
                 'meta' => [
                     'transaction_type' => TransactionName::CreditTransfer->value,
-                    'old_balance' => $user->balanceFloat,
-                    'new_balance' => $user->balanceFloat + $inputs['amount'],
+                    'old_balance' => $user->balance,
+                    'new_balance' => $user->balance + $inputs['amount'],
                 ],
             ]);
 

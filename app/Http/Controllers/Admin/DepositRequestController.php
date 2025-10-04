@@ -66,7 +66,7 @@ class DepositRequestController extends Controller
 
             $player = User::find($request->player);
 
-            if ($request->status == 1 && $agent->balanceFloat < $request->amount) {
+            if ($request->status == 1 && $agent->balance < $request->amount) {
                 return redirect()->back()->with('error', 'You do not have enough balance to transfer!');
             }
 
@@ -80,7 +80,7 @@ class DepositRequestController extends Controller
             ]);
 
             if ($request->status == 1) {
-                $old_balance = $player->balanceFloat;
+                $old_balance = $player->balance;
                 app(WalletService::class)->transfer($agent, $player, $request->amount,
                     TransactionName::TopUp, [
                         'old_balance' => $old_balance,

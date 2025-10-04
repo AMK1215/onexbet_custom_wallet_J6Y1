@@ -48,11 +48,10 @@ class HomeController extends Controller
         $totalBalance = DB::table('users')
             ->join('role_user', 'role_user.user_id', '=', 'users.id')
             ->join('roles', 'roles.id', '=', 'role_user.role_id')
-            ->join('wallets', 'wallets.holder_id', '=', 'users.id')
             ->when(in_array($roleTitle, ['Owner', 'Master', 'Agent', 'SubAgent']), function ($query) use ($user) {
                 return $query->where('users.agent_id', $user->id);
             })
-            ->select(DB::raw('COALESCE(SUM(wallets.balance), 0) as balance'))
+            ->select(DB::raw('COALESCE(SUM(users.balance), 0) as balance'))
             ->first();
 
         // Agent-specific metrics
@@ -67,10 +66,9 @@ class HomeController extends Controller
         if (in_array($roleTitle, ['Owner', 'Master', 'Agent', 'SubAgent'])) {
             $childType = UserType::childUserType(UserType::from($user->type));
             $playerBalance = DB::table('users')
-                ->join('wallets', 'wallets.holder_id', '=', 'users.id')
                 ->where('users.agent_id', $user->id)
                 ->where('users.type', $childType->value)
-                ->select(DB::raw('COALESCE(SUM(wallets.balance), 0) as balance'))
+                ->select(DB::raw('COALESCE(SUM(users.balance), 0) as balance'))
                 ->value('balance');
         }
 

@@ -60,7 +60,7 @@ class PlayerController extends Controller
         // Removed 'placeBets' eager load as aggregates are handled separately
         $players = User::with(['roles']) // Only eager load roles
             ->whereIn('id', $playerIds)
-            ->select('id', 'name', 'user_name', 'phone', 'status', 'referral_code') // Ensure 'balance' is selected if balanceFloat uses it
+            ->select('id', 'name', 'user_name', 'phone', 'status', 'referral_code', 'balance') // Ensure 'balance' is selected
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -136,7 +136,7 @@ class PlayerController extends Controller
                 'name' => $player->name,
                 'user_name' => $player->user_name,
                 'phone' => $player->phone,
-                'balanceFloat' => $player->balanceFloat, // Assuming 'balance' is the column, if it's an accessor, ensure it's efficient
+                'balance' => $player->balance, // Direct access to balance column
                 'status' => $player->status,
                 'roles' => $player->roles->pluck('name')->toArray(),
                 'total_spin' => $spin->total_spin ?? 0,
@@ -278,7 +278,7 @@ class PlayerController extends Controller
 
         try {
             DB::beginTransaction();
-            if ($inputs['amount'] > $agent->balanceFloat) {
+            if ($inputs['amount'] > $agent->balance) {
                 return redirect()->back()->with('error', 'Balance Insufficient');
             }
 
@@ -296,8 +296,8 @@ class PlayerController extends Controller
             // Always process the amount (now defaults to 0)
             app(WalletService::class)->transfer($agent, $user, $inputs['amount'],
                 TransactionName::CreditTransfer, [
-                    'old_balance' => $user->balanceFloat,
-                    'new_balance' => $user->balanceFloat + $inputs['amount'],
+                    'old_balance' => $user->balance,
+                    'new_balance' => $user->balance + $inputs['amount'],
                 ]);
 
             // Log the transfer
@@ -309,8 +309,8 @@ class PlayerController extends Controller
                 'description' => 'Initial Top Up from agent to new player',
                 'meta' => [
                     'transaction_type' => TransactionName::CreditTransfer->value,
-                    'old_balance' => $user->balanceFloat,
-                    'new_balance' => $user->balanceFloat + $inputs['amount'],
+                    'old_balance' => $user->balance,
+                    'new_balance' => $user->balance + $inputs['amount'],
                 ],
             ]);
 
@@ -438,7 +438,7 @@ class PlayerController extends Controller
 
             $cashIn = $inputs['amount'];
 
-            if ($cashIn > $agent->balanceFloat) {
+            if ($cashIn > $agent->balance) {
 
                 return redirect()->back()->with('error', 'You do not have enough balance to transfer!');
             }
@@ -446,8 +446,8 @@ class PlayerController extends Controller
             app(WalletService::class)->transfer($agent, $player, $request->validated('amount'),
                 TransactionName::CreditTransfer, [
                     'note' => $request->note,
-                    'old_balance' => $player->balanceFloat,
-                    'new_balance' => $player->balanceFloat + $request->amount,
+                    'old_balance' => $player->balance,
+                    'new_balance' => $player->balance + $request->amount,
                 ]);
             // Log the transfer
             TransferLog::create([
@@ -459,8 +459,8 @@ class PlayerController extends Controller
                 'meta' => [
                     'transaction_type' => TransactionName::Deposit->value,
                     'note' => $request->note,
-                    'old_balance' => $player->balanceFloat,
-                    'new_balance' => $player->balanceFloat + $request->amount,
+                    'old_balance' => $player->balance,
+                    'new_balance' => $player->balance + $request->amount,
                 ],
             ]);
 
@@ -503,7 +503,7 @@ class PlayerController extends Controller
 
             $cashOut = $inputs['amount'];
 
-            if ($cashOut > $player->balanceFloat) {
+            if ($cashOut > $player->balance) {
 
                 return redirect()->back()->with('error', 'You do not have enough balance to transfer!');
             }
@@ -511,8 +511,8 @@ class PlayerController extends Controller
             app(WalletService::class)->transfer($player, $agent, $request->validated('amount'),
                 TransactionName::DebitTransfer, [
                     'note' => $request->note,
-                    'old_balance' => $player->balanceFloat,
-                    'new_balance' => $player->balanceFloat - $request->amount,
+                    'old_balance' => $player->balance,
+                    'new_balance' => $player->balance - $request->amount,
                 ]);
             // Log the transfer
             TransferLog::create([
@@ -524,8 +524,8 @@ class PlayerController extends Controller
                 'meta' => [
                     'transaction_type' => TransactionName::Withdraw->value,
                     'note' => $request->note,
-                    'old_balance' => $player->balanceFloat,
-                    'new_balance' => $player->balanceFloat - $request->amount,
+                    'old_balance' => $player->balance,
+                    'new_balance' => $player->balance - $request->amount,
                 ],
             ]);
 

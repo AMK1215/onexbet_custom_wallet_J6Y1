@@ -67,12 +67,12 @@ class WithDrawRequestController extends Controller
             'agent_name' => $agent ? $agent->user_name : null,
             'player_id' => $player ? $player->id : null,
             'player_name' => $player ? $player->user_name : null,
-            'player_balance' => $player ? $player->balanceFloat : null,
+            'player_balance' => $player ? $player->balance : null,
         ]);
 
-        if ($request->status == 1 && $player->balanceFloat < $request->amount) {
+        if ($request->status == 1 && $player->balance < $request->amount) {
             Log::warning('Insufficient balance for withdraw', [
-                'player_balance' => $player->balanceFloat,
+                'player_balance' => $player->balance,
                 'request_amount' => $request->amount,
                 'withdraw_id' => $withdraw->id,
             ]);
@@ -101,10 +101,10 @@ class WithDrawRequestController extends Controller
             Log::info('Processing withdraw approval', [
                 'withdraw_id' => $withdraw->id,
                 'amount' => $request->amount,
-                'player_old_balance' => $player->balanceFloat,
+                'player_old_balance' => $player->balance,
             ]);
 
-            $old_balance = $player->balanceFloat;
+            $old_balance = $player->balance;
 
             try {
                 app(WalletService::class)->transfer($player, $agent, $request->amount,
