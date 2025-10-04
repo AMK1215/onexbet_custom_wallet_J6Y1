@@ -75,7 +75,9 @@ class WithdrawController extends Controller
         }
 
         // Process all transactions in the batch
+        Log::debug('WithdrawController: Starting processWithdrawTransactions');
         $results = $this->processWithdrawTransactions($request);
+        Log::debug('WithdrawController: processWithdrawTransactions completed', ['results' => $results]);
 
         // Log the overall batch request and its final outcome
         // This provides an audit trail for the entire webhook call
@@ -86,6 +88,7 @@ class WithdrawController extends Controller
             'status' => collect($results)->every(fn ($r) => $r['code'] === SeamlessWalletCode::Success->value) ? 'success' : 'partial_success_or_failure',
         ]);
 
+        Log::debug('WithdrawController: Final API response', ['response' => $results]);
         return ApiResponseService::success($results);
     }
 

@@ -110,6 +110,9 @@ class GetBalanceController extends Controller
                     $balance = round($balance, 2);
                 }
                 
+                // Ensure we always return a float with proper decimal places
+                $balance = (float) $balance;
+                
                 Log::debug('GetBalanceController: Final balance for response', [
                     'member_account' => $req['member_account'],
                     'final_balance' => $balance,

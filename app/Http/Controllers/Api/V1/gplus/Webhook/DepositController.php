@@ -65,7 +65,9 @@ class DepositController extends Controller
             );
         }
 
+        Log::debug('DepositController: Starting processTransactions');
         $results = $this->processTransactions($request, true);
+        Log::debug('DepositController: processTransactions completed', ['results' => $results]);
 
         TransactionLog::create([
             'type' => 'deposit',
@@ -74,6 +76,7 @@ class DepositController extends Controller
             'status' => collect($results)->every(fn ($r) => $r['code'] === SeamlessWalletCode::Success->value) ? 'success' : 'partial_success_or_failure',
         ]);
 
+        Log::debug('DepositController: Final API response', ['response' => $results]);
         return ApiResponseService::success($results);
     }
 
