@@ -7,7 +7,7 @@ use App\Enums\TransactionName;
 use App\Http\Controllers\Controller;
 use App\Models\GameList;
 use App\Models\PlaceBet;
-use App\Models\Transaction as WalletTransaction;
+use App\Models\CustomTransaction;
 use App\Models\TransactionLog;
 use App\Models\User;
 use App\Services\ApiResponseService;
@@ -168,10 +168,10 @@ class DepositController extends Controller
 
                     // Duplicate check
                     $isDuplicate = PlaceBet::where('transaction_id', $transactionId)->exists() ||
-                        WalletTransaction::whereJsonContains('meta->seamless_transaction_id', $transactionId)->exists();
+                        CustomTransaction::whereJsonContains('meta->seamless_transaction_id', $transactionId)->exists();
 
                     if ($isDuplicate) {
-                        Log::warning('Duplicate transaction ID detected in place_bets or wallet_transactions', ['tx_id' => $transactionId, 'member_account' => $memberAccount]);
+                        Log::warning('Duplicate transaction ID detected in place_bets or custom_transactions', ['tx_id' => $transactionId, 'member_account' => $memberAccount]);
                         $results[] = $this->buildErrorResponse($memberAccount, $productCode, $currentBalance, SeamlessWalletCode::DuplicateTransaction, 'Duplicate transaction', $request->currency);
                         $this->logPlaceBet($batchRequest, $request, $transactionRequest, 'duplicate', $request->request_time, 'Duplicate transaction');
 

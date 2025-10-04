@@ -78,162 +78,172 @@
  * $customWalletService->transfer($fromUser, $toUser, 200, TransactionName::CreditTransfer);
  */
 
-// 4. TRANSACTION HISTORY
-// ======================
-
-// Get user's transaction history
-$transactions = $customWalletService->getTransactionHistory($user, 50, 0);
-
-foreach ($transactions as $transaction) {
-    echo "Amount: {$transaction->amount}, Type: {$transaction->type}, Date: {$transaction->created_at}";
-}
-
-// 5. WALLET STATISTICS
-// ====================
-
-$stats = $customWalletService->getWalletStats();
-echo "Total Users: {$stats['total_users']}";
-echo "Total Balance: {$stats['total_balance']}";
-echo "Average Balance: {$stats['average_balance']}";
-
-// 6. API CONTROLLER EXAMPLES
-// ==========================
-
-// In your API controllers, use balance like this:
-
-class ExampleController extends Controller
-{
-    public function getUserBalance(Request $request)
-    {
-        $user = User::where('user_name', $request->username)->first();
-        
-        if (!$user) {
-            return response()->json(['error' => 'User not found'], 404);
-        }
-        
-        return response()->json([
-            'username' => $user->user_name,
-            'balance' => $user->balanceFloat,
-            'has_sufficient_balance' => $user->hasBalance(1000)
-        ]);
-    }
-    
-    public function deposit(Request $request)
-    {
-        $user = User::find($request->user_id);
-        $amount = $request->amount;
-        
-        $walletService = app(WalletService::class);
-        $success = $walletService->deposit($user, $amount, TransactionName::CapitalDeposit);
-        
-        if ($success) {
-            return response()->json([
-                'success' => true,
-                'new_balance' => $user->refresh()->balanceFloat
-            ]);
-        }
-        
-        return response()->json(['error' => 'Deposit failed'], 500);
-    }
-}
-
-// 7. GAMING INTEGRATION EXAMPLES
-// ==============================
-
-// For gaming operations (bets, wins, etc.)
-
-class GamingController extends Controller
-{
-    public function placeBet(Request $request)
-    {
-        $user = Auth::user();
-        $betAmount = $request->amount;
-        
-        // Check if user has sufficient balance
-        if (!$user->hasBalance($betAmount)) {
-            return response()->json(['error' => 'Insufficient balance'], 400);
-        }
-        
-        $walletService = app(WalletService::class);
-        
-        // Deduct bet amount
-        $success = $walletService->withdraw($user, $betAmount, TransactionName::Bet);
-        
-        if ($success) {
-            // Process the bet logic here
-            // ...
-            
-            return response()->json([
-                'success' => true,
-                'new_balance' => $user->refresh()->balanceFloat
-            ]);
-        }
-        
-        return response()->json(['error' => 'Bet placement failed'], 500);
-    }
-    
-    public function processWin(Request $request)
-    {
-        $user = User::find($request->user_id);
-        $winAmount = $request->amount;
-        
-        $walletService = app(WalletService::class);
-        
-        // Add win amount
-        $success = $walletService->deposit($user, $winAmount, TransactionName::Win);
-        
-        if ($success) {
-            return response()->json([
-                'success' => true,
-                'new_balance' => $user->refresh()->balanceFloat
-            ]);
-        }
-        
-        return response()->json(['error' => 'Win processing failed'], 500);
-    }
-}
-
-// 8. WEBHOOK INTEGRATION (Updated from your files)
-// ================================================
-
-class WebhookController extends Controller
-{
-    public function getBalance(Request $request)
-    {
-        $user = User::where('user_name', $request->member_account)->first();
-        
-        if ($user) {
-            $balance = $user->balanceFloat;  // Use new balance system
-            
-            // Apply currency conversion if needed
-            if (in_array($request->currency, $specialCurrencies)) {
-                $balance = $balance / 1000;
-                $balance = round($balance, 4);
-            } else {
-                $balance = round($balance, 2);
-            }
-            
-            return response()->json([
-                'member_account' => $request->member_account,
-                'balance' => (float) $balance,
-                'code' => 0, // Success
-                'message' => 'Success'
-            ]);
-        }
-        
-        return response()->json([
-            'member_account' => $request->member_account,
-            'balance' => 0.00,
-            'code' => 1, // Member not found
-            'message' => 'Member not found'
-        ]);
-    }
-}
-
-// 9. PERFORMANCE BENEFITS
-// =======================
+/*
+ * 4. TRANSACTION HISTORY
+ * ======================
+ * 
+ * // Get user's transaction history
+ * $transactions = $customWalletService->getTransactionHistory($user, 50, 0);
+ * 
+ * foreach ($transactions as $transaction) {
+ *     echo "Amount: {$transaction->amount}, Type: {$transaction->type}, Date: {$transaction->created_at}";
+ * }
+ */
 
 /*
+ * 5. WALLET STATISTICS
+ * ====================
+ * 
+ * $stats = $customWalletService->getWalletStats();
+ * echo "Total Users: {$stats['total_users']}";
+ * echo "Total Balance: {$stats['total_balance']}";
+ * echo "Average Balance: {$stats['average_balance']}";
+ */
+
+/*
+ * 6. API CONTROLLER EXAMPLES
+ * ==========================
+ * 
+ * // In your API controllers, use balance like this:
+ * 
+ * class ExampleController extends Controller
+ * {
+ *     public function getUserBalance(Request $request)
+ *     {
+ *         $user = User::where('user_name', $request->username)->first();
+ *         
+ *         if (!$user) {
+ *             return response()->json(['error' => 'User not found'], 404);
+ *         }
+ *         
+ *         return response()->json([
+ *             'username' => $user->user_name,
+ *             'balance' => $user->balanceFloat,
+ *             'has_sufficient_balance' => $user->hasBalance(1000)
+ *         ]);
+ *     }
+ *     
+ *     public function deposit(Request $request)
+ *     {
+ *         $user = User::find($request->user_id);
+ *         $amount = $request->amount;
+ *         
+ *         $walletService = app(WalletService::class);
+ *         $success = $walletService->deposit($user, $amount, TransactionName::CapitalDeposit);
+ *         
+ *         if ($success) {
+ *             return response()->json([
+ *                 'success' => true,
+ *                 'new_balance' => $user->refresh()->balanceFloat
+ *             ]);
+ *         }
+ *         
+ *         return response()->json(['error' => 'Deposit failed'], 500);
+ *     }
+ * }
+ */
+
+/*
+ * 7. GAMING INTEGRATION EXAMPLES
+ * ==============================
+ * 
+ * // For gaming operations (bets, wins, etc.)
+ * 
+ * class GamingController extends Controller
+ * {
+ *     public function placeBet(Request $request)
+ *     {
+ *         $user = Auth::user();
+ *         $betAmount = $request->amount;
+ *         
+ *         // Check if user has sufficient balance
+ *         if (!$user->hasBalance($betAmount)) {
+ *             return response()->json(['error' => 'Insufficient balance'], 400);
+ *         }
+ *         
+ *         $walletService = app(WalletService::class);
+ *         
+ *         // Deduct bet amount
+ *         $success = $walletService->withdraw($user, $betAmount, TransactionName::Bet);
+ *         
+ *         if ($success) {
+ *             // Process the bet logic here
+ *             // ...
+ *             
+ *             return response()->json([
+ *                 'success' => true,
+ *                 'new_balance' => $user->refresh()->balanceFloat
+ *             ]);
+ *         }
+ *         
+ *         return response()->json(['error' => 'Bet placement failed'], 500);
+ *     }
+ *     
+ *     public function processWin(Request $request)
+ *     {
+ *         $user = User::find($request->user_id);
+ *         $winAmount = $request->amount;
+ *         
+ *         $walletService = app(WalletService::class);
+ *         
+ *         // Add win amount
+ *         $success = $walletService->deposit($user, $winAmount, TransactionName::Win);
+ *         
+ *         if ($success) {
+ *             return response()->json([
+ *                 'success' => true,
+ *                 'new_balance' => $user->refresh()->balanceFloat
+ *             ]);
+ *         }
+ *         
+ *         return response()->json(['error' => 'Win processing failed'], 500);
+ *     }
+ * }
+ */
+
+/*
+ * 8. WEBHOOK INTEGRATION (Updated from your files)
+ * ================================================
+ * 
+ * class WebhookController extends Controller
+ * {
+ *     public function getBalance(Request $request)
+ *     {
+ *         $user = User::where('user_name', $request->member_account)->first();
+ *         
+ *         if ($user) {
+ *             $balance = $user->balance;  // Use new balance system
+ *             
+ *             // Apply currency conversion if needed
+ *             if (in_array($request->currency, $specialCurrencies)) {
+ *                 $balance = $balance / 1000;
+ *                 $balance = round($balance, 4);
+ *             } else {
+ *                 $balance = round($balance, 2);
+ *             }
+ *             
+ *             return response()->json([
+ *                 'member_account' => $request->member_account,
+ *                 'balance' => (float) $balance,
+ *                 'code' => 0, // Success
+ *                 'message' => 'Success'
+ *             ]);
+ *         }
+ *         
+ *         return response()->json([
+ *             'member_account' => $request->member_account,
+ *             'balance' => 0.00,
+ *             'code' => 1, // Member not found
+ *             'message' => 'Member not found'
+ *         ]);
+ *     }
+ * }
+ */
+
+/*
+ * 9. PERFORMANCE BENEFITS
+ * =======================
+ * 
  * Our new system provides:
  * 
  * 1. 20-50x faster operations (direct database updates)
@@ -252,10 +262,10 @@ class WebhookController extends Controller
  * $walletService->deposit($user, 1000, TransactionName::CapitalDeposit)
  */
 
-// 10. MIGRATION CHECKLIST
-// =======================
-
 /*
+ * 10. MIGRATION CHECKLIST
+ * =======================
+ * 
  * When updating existing code:
  * 
  * 1. Replace $user->wallet->balanceFloat with $user->balance (or $user->balanceFloat for float conversion)
@@ -268,4 +278,5 @@ class WebhookController extends Controller
  * 8. Handle boolean return values from wallet operations
  */
 
-echo "Custom Balance System Usage Guide Complete!";
+// This file is for documentation purposes only
+// Do not execute this file directly - copy the examples into your Laravel application
