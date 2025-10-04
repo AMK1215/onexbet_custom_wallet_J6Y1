@@ -13,6 +13,9 @@ class GetBalanceController extends Controller
 {
     public function getBalance(Request $request)
     {
+        Log::debug('=== DEBUGGING BALANCE ISSUE - GetBalanceController ===');
+        Log::debug('GetBalanceController: Incoming Request', ['request' => $request->all()]);
+        
         // Validate request
         $request->validate([
             'batch_requests' => 'required|array',
@@ -40,6 +43,15 @@ class GetBalanceController extends Controller
 
         $results = [];
         $specialCurrencies = ['IDR2', 'KRW2', 'MMK2', 'VND2', 'LAK2', 'KHR2'];
+        
+        Log::debug('GetBalanceController: Processing batch requests', [
+            'currency' => $request->currency,
+            'isValidSign' => $isValidSign,
+            'isValidCurrency' => $isValidCurrency,
+            'specialCurrencies' => $specialCurrencies,
+            'batch_count' => count($request->batch_requests)
+        ]);
+        
         foreach ($request->batch_requests as $req) {
             if (! $isValidSign) {
                 $results[] = [
@@ -66,14 +78,42 @@ class GetBalanceController extends Controller
             }
 
             $user = User::where('user_name', $req['member_account'])->first();
+            
+            Log::debug('GetBalanceController: Processing member', [
+                'member_account' => $req['member_account'],
+                'product_code' => $req['product_code'],
+                'user_found' => $user ? true : false,
+                'user_id' => $user ? $user->id : null,
+                'raw_balance' => $user ? $user->balance : null,
+                'balance_type' => $user ? gettype($user->balance) : null
+            ]);
+            
             if ($user && $user->balance) {
                 $balance = $user->balance;
-                if (in_array($request->currency, $specialCurrencies)) {
+                $isSpecialCurrency = in_array($request->currency, $specialCurrencies);
+                
+                Log::debug('GetBalanceController: Balance calculation', [
+                    'member_account' => $req['member_account'],
+                    'currency' => $request->currency,
+                    'isSpecialCurrency' => $isSpecialCurrency,
+                    'raw_balance' => $balance,
+                    'conversion_divisor' => $isSpecialCurrency ? 1000 : 1,
+                    'decimal_places' => $isSpecialCurrency ? 4 : 2
+                ]);
+                
+                if ($isSpecialCurrency) {
                     $balance = $balance / 1000; // Apply 1:1000 conversion here (matching working version)
                     $balance = round($balance, 4);
                 } else {
                     $balance = round($balance, 2);
                 }
+                
+                Log::debug('GetBalanceController: Final balance for response', [
+                    'member_account' => $req['member_account'],
+                    'final_balance' => $balance,
+                    'final_balance_type' => gettype($balance),
+                    'json_encoded' => json_encode($balance)
+                ]);
                 
                 $results[] = [
                     'member_account' => $req['member_account'],
@@ -93,6 +133,11 @@ class GetBalanceController extends Controller
             }
         }
 
+        Log::debug('GetBalanceController: Final response', [
+            'results' => $results,
+            'results_count' => count($results)
+        ]);
+        
         return ApiResponseService::success($results);
     }
 

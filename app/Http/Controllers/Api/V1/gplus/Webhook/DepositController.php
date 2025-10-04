@@ -43,6 +43,9 @@ class DepositController extends Controller
      */
     public function deposit(Request $request)
     {
+        Log::debug('=== DEBUGGING BALANCE ISSUE - DepositController ===');
+        Log::debug('DepositController: Incoming Request', ['request' => $request->all()]);
+        
         try {
             $request->validate([
                 'batch_requests' => 'required|array',
@@ -367,13 +370,28 @@ class DepositController extends Controller
     private function formatBalanceForResponse(float $balance, string $currency): float
     {
         $specialCurrencies = ['IDR2', 'KRW2', 'MMK2', 'VND2', 'LAK2', 'KHR2'];
+        $isSpecialCurrency = in_array($currency, $specialCurrencies);
         
-        if (in_array($currency, $specialCurrencies)) {
+        Log::debug('DepositController: formatBalanceForResponse', [
+            'input_balance' => $balance,
+            'currency' => $currency,
+            'isSpecialCurrency' => $isSpecialCurrency,
+            'conversion_divisor' => $isSpecialCurrency ? 1000 : 1,
+            'decimal_places' => $isSpecialCurrency ? 4 : 2
+        ]);
+        
+        if ($isSpecialCurrency) {
             $balance = $balance / 1000; // Apply 1:1000 conversion here (matching working version)
             $balance = round($balance, 4);
         } else {
             $balance = round($balance, 2);
         }
+        
+        Log::debug('DepositController: formatBalanceForResponse result', [
+            'output_balance' => $balance,
+            'output_type' => gettype($balance),
+            'json_encoded' => json_encode($balance)
+        ]);
         
         return (float) $balance;
     }
