@@ -69,19 +69,16 @@ class GetBalanceController extends Controller
             if ($user && $user->balance) {
                 $balance = $user->balance;
                 if (in_array($request->currency, $specialCurrencies)) {
-                    $balance = $balance / 1000; // Apply 1:1000 conversion here
+                    $balance = $balance / $this->getCurrencyValue($request->currency);
                     $balance = round($balance, 4);
                 } else {
                     $balance = round($balance, 2);
                 }
                 
-                // Format balance as integer (no decimal places)
-                $balanceValue = (int) round($balance);
-                
                 $results[] = [
                     'member_account' => $req['member_account'],
                     'product_code' => $req['product_code'],
-                    'balance' => $balanceValue, // Return as integer
+                    'balance' => (float) $balance,
                     'code' => \App\Enums\SeamlessWalletCode::Success->value,
                     'message' => 'Success',
                 ];
@@ -99,4 +96,19 @@ class GetBalanceController extends Controller
         return ApiResponseService::success($results);
     }
 
+    /**
+     * Gets the currency conversion value.
+     */
+    private function getCurrencyValue(string $currency): int
+    {
+        return match ($currency) {
+            'IDR2' => 100,
+            'KRW2' => 10,
+            'MMK2' => 1000,
+            'VND2' => 1000,
+            'LAK2' => 10,
+            'KHR2' => 100,
+            default => 1,
+        };
+    }
 }

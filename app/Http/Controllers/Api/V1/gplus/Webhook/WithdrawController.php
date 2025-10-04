@@ -255,11 +255,7 @@ class WithdrawController extends Controller
                     $transactionMessage = 'Debit action with zero/negative amount.';
                     // Pass $memberAccount to logPlaceBet to ensure it's logged
                     $this->logPlaceBet($batchRequest, $request, $tx, 'info', $request->request_time, $transactionMessage, $currentBalance, $currentBalance);
-                    $decimalPlaces = $this->getDecimalPlaces($request->currency);
-                    $formattedBalanceValue = $this->formatBalance($currentBalance, $request->currency);
-                    
-                    // Format the balance as an integer (no decimal places)
-                    $formattedBalance = (int) round($formattedBalanceValue);
+                    $formattedBalance = round($currentBalance / $this->getCurrencyValue($request->currency), 4);
                     
                     $responseData[] = [
                         'member_account' => $memberAccount,
@@ -332,11 +328,7 @@ class WithdrawController extends Controller
                                 $beforeTransactionBalance, $beforeTransactionBalance
                             );
                             DB::rollBack(); // Or commit, but rollback is more "traditional" if nothing changed
-                            $decimalPlaces = $this->getDecimalPlaces($request->currency);
-                            $formattedBalanceValue = $this->formatBalance($beforeTransactionBalance, $request->currency);
-                            
-                            // Format the balance as an integer (no decimal places)
-                            $formattedBalance = (int) round($formattedBalanceValue);
+                            $formattedBalance = round($beforeTransactionBalance / $this->getCurrencyValue($request->currency), 4);
                             
                             $responseData[] = [
                                 'member_account' => $memberAccount,
@@ -361,19 +353,14 @@ class WithdrawController extends Controller
                         $this->logPlaceBet($batchRequest, $request, $tx, 'completed', $request->request_time, $transactionMessage, $beforeTransactionBalance, $newBalance);
 
                         // Add success response with proper decimal formatting
-                        $decimalPlaces = $this->getDecimalPlaces($request->currency);
-                        $beforeBalanceValue = $this->formatBalance($beforeTransactionBalance, $request->currency);
-                        $afterBalanceValue = $this->formatBalance($newBalance, $request->currency);
-
-                        // Format the balance values as integers (no decimal places)
-                        $beforeBalanceFormatted = (int) round($beforeBalanceValue);
-                        $afterBalanceFormatted = (int) round($afterBalanceValue);
+                        $beforeBalanceValue = round($beforeTransactionBalance / $this->getCurrencyValue($request->currency), 4);
+                        $afterBalanceValue = round($newBalance / $this->getCurrencyValue($request->currency), 4);
 
                         $responseData[] = [
                             'member_account' => $memberAccount,
                             'product_code' => (int) $productCode,
-                            'before_balance' => $beforeBalanceFormatted, // <-- Will be a JSON integer
-                            'balance' => $afterBalanceFormatted,         // <-- Will be a JSON integer
+                            'before_balance' => $beforeBalanceValue,
+                            'balance' => $afterBalanceValue,
                             'code' => $transactionCode,
                             'message' => $transactionMessage,
                             'transaction_id' => $transactionId,
@@ -417,17 +404,13 @@ class WithdrawController extends Controller
      */
     private function buildErrorResponse(string $memberAccount, string|int $productCode, float $balance, SeamlessWalletCode $code, string $message, string $currency): array
     {
-        $decimalPlaces = $this->getDecimalPlaces($currency);
-        $formattedBalanceValue = $this->formatBalance($balance, $currency); // Use the formatted float value
-        
-        // Format the balance as an integer (no decimal places)
-        $finalBalance = (int) round($formattedBalanceValue);
+        $formattedBalanceValue = round($balance / $this->getCurrencyValue($currency), 4);
         
         return [
             'member_account' => $memberAccount,
             'product_code' => (int) $productCode, // Ensure it's an int
-            'before_balance' => $finalBalance,    // <-- Will be a JSON integer
-            'balance' => $finalBalance,          // <-- Will be a JSON integer
+            'before_balance' => $formattedBalanceValue,
+            'balance' => $formattedBalanceValue,
             'code' => $code->value,
             'message' => $message,
         ];
@@ -439,35 +422,6 @@ class WithdrawController extends Controller
     private function toDecimalPlaces(float $value, int $precision = 4): float
     {
         return round($value, $precision);
-    }
-
-    /**
-     * Gets the decimal places for a currency.
-     */
-    private function getDecimalPlaces(string $currency): int
-    {
-        return in_array($currency, $this->specialCurrencies) ? 4 : 2;
-    }
-
-    /**
-     * Formats the balance based on the currency and its scaling.
-     */
-    private function formatBalance(float $balance, string $currency): float
-    {
-        // Use a match expression for cleaner currency value mapping
-        $divisor = match ($currency) {
-            'IDR2' => 100,
-            'KRW2' => 10,
-            'MMK2' => 1000, // Assuming MMK2 means 1/1000th unit
-            'VND2' => 1000,
-            'LAK2' => 10,
-            'KHR2' => 100,
-            default => 1, // Default to 1 for standard currencies
-        };
-
-        $precision = in_array($currency, $this->specialCurrencies) ? 4 : 2;
-
-        return round($balance / $divisor, $precision);
     }
 
     /**

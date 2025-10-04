@@ -276,19 +276,14 @@ class DepositController extends Controller
 
                         $afterTransactionBalance = $userWithWallet->balance;
 
-                        $decimalPlaces = in_array($request->currency, ['IDR2', 'KRW2', 'MMK2', 'VND2', 'LAK2', 'KHR2']) ? 4 : 2;
-                        $beforeBalanceValue = round($beforeTransactionBalance / $this->getCurrencyValue($request->currency), $decimalPlaces);
-                        $afterBalanceValue = round($afterTransactionBalance / $this->getCurrencyValue($request->currency), $decimalPlaces);
-                        
-                        // Format the balance values as integers (no decimal places)
-                        $beforeBalanceFormatted = (int) round($beforeBalanceValue);
-                        $afterBalanceFormatted = (int) round($afterBalanceValue);
+                        $beforeBalanceValue = round($beforeTransactionBalance / $this->getCurrencyValue($request->currency), 4);
+                        $afterBalanceValue = round($afterTransactionBalance / $this->getCurrencyValue($request->currency), 4);
                         
                         $results[] = [
                             'member_account' => $memberAccount,
                             'product_code' => (int) $productCode,
-                            'before_balance' => $beforeBalanceFormatted, // <-- Will be a JSON integer
-                            'balance' => $afterBalanceFormatted,         // <-- Will be a JSON integer
+                            'before_balance' => $beforeBalanceValue,
+                            'balance' => $afterBalanceValue,
                             'code' => SeamlessWalletCode::Success->value,
                             'message' => '',
                         ];
@@ -329,17 +324,13 @@ class DepositController extends Controller
      */
     private function buildErrorResponse(string $memberAccount, string $productCode, float $balance, SeamlessWalletCode $code, string $message, string $currency): array
     {
-        $decimalPlaces = in_array($currency, ['IDR2', 'KRW2', 'MMK2', 'VND2', 'LAK2', 'KHR2']) ? 4 : 2;
-        $formattedBalanceValue = round($balance / $this->getCurrencyValue($currency), $decimalPlaces);
-
-        // Format the balance as an integer (no decimal places)
-        $finalBalance = (int) round($formattedBalanceValue);
+        $formattedBalanceValue = round($balance / $this->getCurrencyValue($currency), 4);
 
         return [
             'member_account' => $memberAccount,
             'product_code' => (int) $productCode,
-            'before_balance' => $finalBalance,    // <-- Will be a JSON integer
-            'balance' => $finalBalance,          // <-- Will be a JSON integer
+            'before_balance' => $formattedBalanceValue,
+            'balance' => $formattedBalanceValue,
             'code' => $code->value,
             'message' => $message,
         ];
