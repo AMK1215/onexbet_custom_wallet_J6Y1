@@ -280,6 +280,8 @@ class DepositController extends Controller
                             'from_admin' => $admin->id,
                         ]);
 
+                        // Refresh the user model to get the updated balance
+                        $userWithWallet->refresh();
                         $afterTransactionBalance = $userWithWallet->balance;
 
                         $beforeBalanceValue = $this->formatBalanceForResponse($beforeTransactionBalance, $request->currency);

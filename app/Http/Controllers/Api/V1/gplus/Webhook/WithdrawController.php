@@ -351,6 +351,9 @@ class WithdrawController extends Controller
                     // Perform the withdrawal through wallet service
                     // Bavix\Wallet's withdraw method will throw InsufficientFunds if the internal balance check fails
                         $this->customWalletService->withdraw($userWithWallet, $convertedAmount, TransactionName::Withdraw, $meta);
+                    
+                    // Refresh the user model to get the updated balance
+                    $userWithWallet->refresh();
                     $newBalance = $userWithWallet->balance;
 
                         $transactionCode = SeamlessWalletCode::Success->value;
