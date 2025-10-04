@@ -256,14 +256,14 @@ class WithdrawController extends Controller
                     // Pass $memberAccount to logPlaceBet to ensure it's logged
                     $this->logPlaceBet($batchRequest, $request, $tx, 'info', $request->request_time, $transactionMessage, $currentBalance, $currentBalance);
                     $decimalPlaces = $this->getDecimalPlaces($request->currency);
-                    $formattedBalance = (float) round($this->formatBalance($currentBalance, $request->currency), $decimalPlaces);
+                    $formattedBalanceValue = $this->formatBalance($currentBalance, $request->currency);
                     
-                    // Ensure proper decimal places are maintained in JSON
-                    if ($decimalPlaces == 2) {
-                        $formattedBalance = (float) sprintf('%.2f', $formattedBalance);
-                    } elseif ($decimalPlaces == 4) {
-                        $formattedBalance = (float) sprintf('%.4f', $formattedBalance);
-                    }
+                    // Format the float value to the correct precision string, then cast back to float.
+                    $formattedBalance = match($decimalPlaces) {
+                        2 => (float) sprintf('%.2f', $formattedBalanceValue),
+                        4 => (float) sprintf('%.4f', $formattedBalanceValue),
+                        default => (float) $formattedBalanceValue,
+                    };
                     
                     $responseData[] = [
                         'member_account' => $memberAccount,
@@ -337,14 +337,14 @@ class WithdrawController extends Controller
                             );
                             DB::rollBack(); // Or commit, but rollback is more "traditional" if nothing changed
                             $decimalPlaces = $this->getDecimalPlaces($request->currency);
-                            $formattedBalance = (float) round($this->formatBalance($beforeTransactionBalance, $request->currency), $decimalPlaces);
+                            $formattedBalanceValue = $this->formatBalance($beforeTransactionBalance, $request->currency);
                             
-                            // Ensure proper decimal places are maintained in JSON
-                            if ($decimalPlaces == 2) {
-                                $formattedBalance = (float) sprintf('%.2f', $formattedBalance);
-                            } elseif ($decimalPlaces == 4) {
-                                $formattedBalance = (float) sprintf('%.4f', $formattedBalance);
-                            }
+                            // Format the float value to the correct precision string, then cast back to float.
+                            $formattedBalance = match($decimalPlaces) {
+                                2 => (float) sprintf('%.2f', $formattedBalanceValue),
+                                4 => (float) sprintf('%.4f', $formattedBalanceValue),
+                                default => (float) $formattedBalanceValue,
+                            };
                             
                             $responseData[] = [
                                 'member_account' => $memberAccount,
@@ -370,23 +370,28 @@ class WithdrawController extends Controller
 
                         // Add success response with proper decimal formatting
                         $decimalPlaces = $this->getDecimalPlaces($request->currency);
-                        $beforeBalance = (float) round($this->formatBalance($beforeTransactionBalance, $request->currency), $decimalPlaces);
-                        $afterBalance = (float) round($this->formatBalance($newBalance, $request->currency), $decimalPlaces);
-                        
-                        // Ensure proper decimal places are maintained in JSON
-                        if ($decimalPlaces == 2) {
-                            $beforeBalance = (float) sprintf('%.2f', $beforeBalance);
-                            $afterBalance = (float) sprintf('%.2f', $afterBalance);
-                        } elseif ($decimalPlaces == 4) {
-                            $beforeBalance = (float) sprintf('%.4f', $beforeBalance);
-                            $afterBalance = (float) sprintf('%.4f', $afterBalance);
-                        }
-                        
+                        $beforeBalanceValue = $this->formatBalance($beforeTransactionBalance, $request->currency);
+                        $afterBalanceValue = $this->formatBalance($newBalance, $request->currency);
+
+                        // Format the float values to the correct precision string, then cast back to float.
+                        // This forces PHP to include the decimal point when json_encode runs.
+                        $beforeBalanceFormatted = match($decimalPlaces) {
+                            2 => (float) sprintf('%.2f', $beforeBalanceValue),
+                            4 => (float) sprintf('%.4f', $beforeBalanceValue),
+                            default => (float) $beforeBalanceValue,
+                        };
+
+                        $afterBalanceFormatted = match($decimalPlaces) {
+                            2 => (float) sprintf('%.2f', $afterBalanceValue),
+                            4 => (float) sprintf('%.4f', $afterBalanceValue),
+                            default => (float) $afterBalanceValue,
+                        };
+
                         $responseData[] = [
                             'member_account' => $memberAccount,
                             'product_code' => (int) $productCode,
-                            'before_balance' => $beforeBalance,
-                            'balance' => $afterBalance,
+                            'before_balance' => $beforeBalanceFormatted, // <-- Will be a JSON number (float)
+                            'balance' => $afterBalanceFormatted,         // <-- Will be a JSON number (float)
                             'code' => $transactionCode,
                             'message' => $transactionMessage,
                             'transaction_id' => $transactionId,
@@ -431,20 +436,20 @@ class WithdrawController extends Controller
     private function buildErrorResponse(string $memberAccount, string|int $productCode, float $balance, SeamlessWalletCode $code, string $message, string $currency): array
     {
         $decimalPlaces = $this->getDecimalPlaces($currency);
-        $formattedBalance = (float) round($this->formatBalance($balance, $currency), $decimalPlaces);
+        $formattedBalanceValue = $this->formatBalance($balance, $currency); // Use the formatted float value
         
-        // Ensure proper decimal places are maintained in JSON
-        if ($decimalPlaces == 2) {
-            $formattedBalance = (float) sprintf('%.2f', $formattedBalance);
-        } elseif ($decimalPlaces == 4) {
-            $formattedBalance = (float) sprintf('%.4f', $formattedBalance);
-        }
+        // Format the float value to the correct precision string, then cast back to float.
+        $finalBalance = match($decimalPlaces) {
+            2 => (float) sprintf('%.2f', $formattedBalanceValue),
+            4 => (float) sprintf('%.4f', $formattedBalanceValue),
+            default => (float) $formattedBalanceValue,
+        };
         
         return [
             'member_account' => $memberAccount,
             'product_code' => (int) $productCode, // Ensure it's an int
-            'before_balance' => $formattedBalance,
-            'balance' => $formattedBalance,
+            'before_balance' => $finalBalance,    // <-- Will be a JSON number (float)
+            'balance' => $finalBalance,          // <-- Will be a JSON number (float)
             'code' => $code->value,
             'message' => $message,
         ];

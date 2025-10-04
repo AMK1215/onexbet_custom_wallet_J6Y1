@@ -277,23 +277,27 @@ class DepositController extends Controller
                         $afterTransactionBalance = $userWithWallet->balance;
 
                         $decimalPlaces = in_array($request->currency, ['IDR2', 'KRW2', 'MMK2', 'VND2', 'LAK2', 'KHR2']) ? 4 : 2;
-                        $beforeBalanceFormatted = (float) round($beforeTransactionBalance / $this->getCurrencyValue($request->currency), $decimalPlaces);
-                        $afterBalanceFormatted = (float) round($afterTransactionBalance / $this->getCurrencyValue($request->currency), $decimalPlaces);
+                        $beforeBalanceValue = round($beforeTransactionBalance / $this->getCurrencyValue($request->currency), $decimalPlaces);
+                        $afterBalanceValue = round($afterTransactionBalance / $this->getCurrencyValue($request->currency), $decimalPlaces);
                         
-                        // Ensure proper decimal places are maintained in JSON
-                        if ($decimalPlaces == 2) {
-                            $beforeBalanceFormatted = (float) sprintf('%.2f', $beforeBalanceFormatted);
-                            $afterBalanceFormatted = (float) sprintf('%.2f', $afterBalanceFormatted);
-                        } elseif ($decimalPlaces == 4) {
-                            $beforeBalanceFormatted = (float) sprintf('%.4f', $beforeBalanceFormatted);
-                            $afterBalanceFormatted = (float) sprintf('%.4f', $afterBalanceFormatted);
-                        }
+                        // Format the float values to the correct precision string, then cast back to float.
+                        $beforeBalanceFormatted = match($decimalPlaces) {
+                            2 => (float) sprintf('%.2f', $beforeBalanceValue),
+                            4 => (float) sprintf('%.4f', $beforeBalanceValue),
+                            default => (float) $beforeBalanceValue,
+                        };
+
+                        $afterBalanceFormatted = match($decimalPlaces) {
+                            2 => (float) sprintf('%.2f', $afterBalanceValue),
+                            4 => (float) sprintf('%.4f', $afterBalanceValue),
+                            default => (float) $afterBalanceValue,
+                        };
                         
                         $results[] = [
                             'member_account' => $memberAccount,
                             'product_code' => (int) $productCode,
-                            'before_balance' => $beforeBalanceFormatted,
-                            'balance' => $afterBalanceFormatted,
+                            'before_balance' => $beforeBalanceFormatted, // <-- Will be a JSON number (float)
+                            'balance' => $afterBalanceFormatted,         // <-- Will be a JSON number (float)
                             'code' => SeamlessWalletCode::Success->value,
                             'message' => '',
                         ];
@@ -335,20 +339,20 @@ class DepositController extends Controller
     private function buildErrorResponse(string $memberAccount, string $productCode, float $balance, SeamlessWalletCode $code, string $message, string $currency): array
     {
         $decimalPlaces = in_array($currency, ['IDR2', 'KRW2', 'MMK2', 'VND2', 'LAK2', 'KHR2']) ? 4 : 2;
-        $formattedBalance = (float) round($balance / $this->getCurrencyValue($currency), $decimalPlaces);
+        $formattedBalanceValue = round($balance / $this->getCurrencyValue($currency), $decimalPlaces);
 
-        // Ensure proper decimal places are maintained in JSON
-        if ($decimalPlaces == 2) {
-            $formattedBalance = (float) sprintf('%.2f', $formattedBalance);
-        } elseif ($decimalPlaces == 4) {
-            $formattedBalance = (float) sprintf('%.4f', $formattedBalance);
-        }
+        // Format the float value to the correct precision string, then cast back to float.
+        $finalBalance = match($decimalPlaces) {
+            2 => (float) sprintf('%.2f', $formattedBalanceValue),
+            4 => (float) sprintf('%.4f', $formattedBalanceValue),
+            default => (float) $formattedBalanceValue,
+        };
 
         return [
             'member_account' => $memberAccount,
             'product_code' => (int) $productCode,
-            'before_balance' => $formattedBalance,
-            'balance' => $formattedBalance,
+            'before_balance' => $finalBalance,    // <-- Will be a JSON number (float)
+            'balance' => $finalBalance,          // <-- Will be a JSON number (float)
             'code' => $code->value,
             'message' => $message,
         ];
