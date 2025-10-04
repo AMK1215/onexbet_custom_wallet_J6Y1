@@ -290,10 +290,10 @@ class TwoDigitController extends Controller
                 if ($isWinner) {
                     $prize = $bet->bet_amount * 80;
 
-                    // Update player wallet (users table, main_balance)
+                    // Update player wallet (users table, balance)
                     $player = User::find($bet->user_id);
                     if ($player) {
-                        $player->main_balance += $prize;
+                        $player->balance += $prize;
                         $player->save();
                         Log::info('Prize added to player', ['user_id' => $player->id, 'prize' => $prize]);
                     }

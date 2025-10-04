@@ -195,27 +195,13 @@ class HomeController extends Controller
         $admin = Auth::user();
 
         // Get the current balance before the update
-        $openingBalance = $admin->wallet->balanceFloat;
+        $openingBalance = $admin->balanceFloat;
 
         // Update the balance using the WalletService
         app(WalletService::class)->deposit($admin, $request->balance, TransactionName::CapitalDeposit);
 
-        // Record the transaction in the transactions table
-        Transaction::create([
-            'payable_type' => get_class($admin),
-            'payable_id' => $admin->id,
-            'wallet_id' => $admin->wallet->id,
-            'type' => 'deposit',
-            'amount' => $request->balance,
-            'confirmed' => true,
-            'meta' => json_encode([
-                'name' => TransactionName::CapitalDeposit,
-                'opening_balance' => $openingBalance,
-                'new_balance' => $admin->wallet->balanceFloat,
-                'target_user_id' => $admin->id,
-            ]),
-            'uuid' => Str::uuid()->toString(),
-        ]);
+        // Refresh the admin model to get updated balance
+        $admin->refresh();
 
         return back()->with('success', 'Add New Balance Successfully.');
     }

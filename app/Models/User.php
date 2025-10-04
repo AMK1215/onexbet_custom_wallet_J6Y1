@@ -16,18 +16,16 @@ use App\Models\Admin\TopTenWithdraw;
 use App\Models\PlaceBet;
 use App\Models\TwoDigit\TwoBet;
 use App\Models\TwoDigit\TwoBetSlip;
-use Bavix\Wallet\Interfaces\Wallet;
-use Bavix\Wallet\Traits\HasWallet;
-use Bavix\Wallet\Traits\HasWalletFloat;
+// Removed Laravel Wallet package dependencies
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Crypt;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable implements Wallet
+class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, HasWalletFloat, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     private const PLAYER_ROLE = 5;
 
@@ -63,7 +61,6 @@ class User extends Authenticatable implements Wallet
         'agent_logo',
         'site_name',
         'site_link',
-        'main_balance',
         'limit',
         'limit3',
         'cor',
@@ -305,5 +302,39 @@ class User extends Authenticatable implements Wallet
     public function reportTransactionsAsPlayer()
     {
         return $this->hasMany(ReportTransaction::class, 'user_id');
+    }
+
+    // Custom Wallet Methods (replacing Laravel Wallet package)
+    
+    /**
+     * Get wallet balance as float
+     */
+    public function getBalanceFloatAttribute(): float
+    {
+        return (float) $this->balance;
+    }
+
+    /**
+     * Check if user has sufficient balance
+     */
+    public function hasBalance(float $amount): bool
+    {
+        return $this->balance >= $amount;
+    }
+
+    /**
+     * Get custom transactions for this user
+     */
+    public function customTransactions()
+    {
+        return $this->hasMany(CustomTransaction::class, 'user_id');
+    }
+
+    /**
+     * Get custom transactions where this user is the target
+     */
+    public function customTransactionsAsTarget()
+    {
+        return $this->hasMany(CustomTransaction::class, 'target_user_id');
     }
 }

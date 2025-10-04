@@ -6,79 +6,94 @@ use App\Enums\TransactionName;
 use App\Enums\UserType;
 use App\Models\User;
 use App\Services\WalletService;
+use App\Services\CustomWalletService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class UsersTableSeeder extends Seeder
 {
     public function run(): void
     {
-        $walletService = new WalletService;
+        try {
+            DB::beginTransaction();
+            
+            $customWalletService = new CustomWalletService;
+            $walletService = new WalletService($customWalletService);
 
-        // Create owner with large initial capital
-        $owner = $this->createUser(
-            UserType::Owner,
-            'Owner',
-            'OWNER001',
-            '09123456789',
-            null,
-            'OWNER'.Str::random(6)
-        );
-        $walletService->deposit($owner, 500_000_00000000, TransactionName::CapitalDeposit);
-
-        // Create system wallet
-        $systemWallet = $this->createUser(
-            UserType::SystemWallet,
-            'System Wallet',
-            'SYS001',
-            '09222222222',
-            null,
-            'SYS'.Str::random(6)
-        );
-        $walletService->deposit($systemWallet, 500 * 100_0000, TransactionName::CapitalDeposit);
-
-        // Create master account
-        $master = $this->createUser(
-            UserType::Master,
-            'Master 1',
-            'MASTER001',
-            '09333333333',
-            $owner->id,
-            'MASTER'.Str::random(6)
-        );
-        // Initial balance for master - increased to cover all distributions
-        $masterInitialBalance = 500_000;
-        $walletService->transfer($owner, $master, $masterInitialBalance, TransactionName::CreditTransfer);
-
-        // Create 10 agents
-        for ($i = 1; $i <= 2; $i++) {
-            $agent = $this->createUser(
-                UserType::Agent,
-                "Agent $i",
-                'AGENT'.str_pad($i, 3, '0', STR_PAD_LEFT),
-                '091123456'.str_pad($i, 2, '0', STR_PAD_LEFT),
-                $master->id,
-                'AGENT'.Str::random(6)
+            // Create owner with large initial capital
+            $owner = $this->createUser(
+                UserType::Owner,
+                'Owner',
+                'OWNER001',
+                '09123456789',
+                null,
+                'OWNER'.Str::random(6)
             );
-            // Random initial balance between 1.5M to 2.5M
-            $initialBalance = rand(1, 2) * 100_000;
-            $walletService->transfer($master, $agent, $initialBalance, TransactionName::CreditTransfer);
+            $ownerDeposit = 500_000_0000;
+            $walletService->deposit($owner, $ownerDeposit, TransactionName::CapitalDeposit);
 
-            // Create players directly under each agent (no sub-agents)
-            for ($k = 1; $k <= 4; $k++) {
-                $player = $this->createUser(
-                    UserType::Player,
-                    "Player $i-$k",
-                    'PLAYER'.str_pad($i, 2, '0', STR_PAD_LEFT).str_pad($k, 2, '0', STR_PAD_LEFT),
-                    '091111111'.str_pad($i, 1, '0', STR_PAD_LEFT).str_pad($k, 2, '0', STR_PAD_LEFT),
-                    $agent->id,
-                    'PLAYER'.Str::random(6)
+            // Create system wallet
+            $systemWallet = $this->createUser(
+                UserType::SystemWallet,
+                'System Wallet',
+                'SYS001',
+                '09222222222',
+                null,
+                'SYS'.Str::random(6)
+            );
+            $systemDeposit = 50 * 100_0000;
+            $walletService->deposit($systemWallet, $systemDeposit, TransactionName::CapitalDeposit);
+
+            // Create master account
+            $master = $this->createUser(
+                UserType::Master,
+                'Master 1',
+                'MASTER001',
+                '09333333333',
+                $owner->id,
+                'MASTER'.Str::random(6)
+            );
+            // Initial balance for master - increased to cover all distributions
+            $masterInitialBalance = 500_000;
+            $transferResult = $walletService->transfer($owner, $master, $masterInitialBalance, TransactionName::CreditTransfer);
+
+            // Create 10 agents
+            for ($i = 1; $i <= 2; $i++) {
+                $agent = $this->createUser(
+                    UserType::Agent,
+                    "Agent $i",
+                    'AGENT'.str_pad($i, 3, '0', STR_PAD_LEFT),
+                    '091123456'.str_pad($i, 2, '0', STR_PAD_LEFT),
+                    $master->id,
+                    'AGENT'.Str::random(6)
                 );
-                // Fixed initial balance of 10,000
-                $initialBalance = 10000;
-                $walletService->transfer($agent, $player, $initialBalance, TransactionName::CreditTransfer);
+                // Initial balance for agent - reasonable amount
+                $agentInitialBalance = 50_000;
+                $agentTransferResult = $walletService->transfer($master, $agent, $agentInitialBalance, TransactionName::CreditTransfer);
+
+                // Create players directly under each agent (no sub-agents)
+                for ($k = 1; $k <= 4; $k++) {
+                    $player = $this->createUser(
+                        UserType::Player,
+                        "Player $i-$k",
+                        'PLAYER'.str_pad($i, 2, '0', STR_PAD_LEFT).str_pad($k, 2, '0', STR_PAD_LEFT),
+                        '091111111'.str_pad($i, 1, '0', STR_PAD_LEFT).str_pad($k, 2, '0', STR_PAD_LEFT),
+                        $agent->id,
+                        'PLAYER'.Str::random(6)
+                    );
+                    // Fixed initial balance of 5,000
+                    $playerInitialBalance = 5000;
+                    $playerTransferResult = $walletService->transfer($agent, $player, $playerInitialBalance, TransactionName::CreditTransfer);
+                }
             }
+            
+            DB::commit();
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
         }
     }
 
@@ -100,6 +115,7 @@ class UsersTableSeeder extends Seeder
             'is_changed_password' => 1,
             'type' => $type->value,
             'referral_code' => $referral_code,
+            'balance' => 0, // Initialize wallet balance
         ]);
     }
 }

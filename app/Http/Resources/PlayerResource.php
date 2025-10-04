@@ -21,7 +21,6 @@ class PlayerResource extends JsonResource
             'phone' => $this->phone,
             'email' => $this->email,
             'balance' => $this->balanceFloat,
-            'main_balance' => $this->main_balance,
             'status' => $this->status,
         ];
     }

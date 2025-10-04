@@ -65,9 +65,9 @@ class GetBalanceController extends Controller
                 continue;
             }
 
-            $user = User::with('wallet')->where('user_name', $req['member_account'])->first();
-            if ($user && $user->wallet) {
-                $balance = $user->wallet->balanceFloat;
+            $user = User::where('user_name', $req['member_account'])->first();
+            if ($user) {
+                $balance = $user->balance;
                 if (in_array($request->currency, $specialCurrencies)) {
                     $balance = $balance / 1000; // Apply 1:1000 conversion here
                     $balance = round($balance, 4);

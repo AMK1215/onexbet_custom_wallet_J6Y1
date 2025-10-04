@@ -130,14 +130,7 @@ class DepositController extends Controller
                     continue;
                 }
 
-                if (! $user->wallet) {
-                    Log::warning('Wallet missing for member', ['member_account' => $memberAccount]);
-                    $results[] = $this->buildErrorResponse($memberAccount, $productCode, 0.0, SeamlessWalletCode::MemberNotExist, 'Member wallet missing', $request->currency);
-
-                    continue;
-                }
-
-                $initialBalance = $user->wallet->balanceFloat;
+                $initialBalance = $user->balance;
                 $currentBalance = $initialBalance;
 
                 foreach ($batchRequest['transactions'] ?? [] as $transactionRequest) {
@@ -212,15 +205,13 @@ class DepositController extends Controller
                     DB::beginTransaction();
                     try {
                         $user->refresh();
-                        $userWithWallet = User::with(['wallet' => function ($query) {
-                            $query->lockForUpdate();
-                        }])->find($user->id);
+                        $userWithWallet = User::where('id', $user->id)->lockForUpdate()->first();
 
-                        if (! $userWithWallet || ! $userWithWallet->wallet) {
-                            throw new Exception('User or wallet not found during transaction locking.');
+                        if (! $userWithWallet) {
+                            throw new Exception('User not found during transaction locking.');
                         }
 
-                        $beforeTransactionBalance = $userWithWallet->wallet->balanceFloat;
+                        $beforeTransactionBalance = $userWithWallet->balance;
                         $convertedAmount = $this->toDecimalPlaces($amount * $this->getCurrencyValue($request->currency));
 
                         // Skip SETTLED with zero or negative amount if it means no actual credit
@@ -276,7 +267,7 @@ class DepositController extends Controller
                             'from_admin' => $admin->id,
                         ]);
 
-                        $afterTransactionBalance = $userWithWallet->wallet->balanceFloat;
+                        $afterTransactionBalance = $userWithWallet->balance;
 
                         $results[] = [
                             'member_account' => $memberAccount,

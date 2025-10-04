@@ -37,53 +37,8 @@ class TransactionController extends Controller
         return $this->success(TransactionResource::collection($transactions));
     }
 
-    public function MainToGame(Request $request)
-    {
-        $player = Auth::user();
-        $inputs = $request->validate([
-            'amount' => 'required',
-        ]);
-
-        if ($inputs['amount'] > $player->main_balance) {
-            return $this->error('', 'You do not have enough balance to transfer', 201);
-        }
-
-        (new WalletService)->deposit($player, $inputs['amount'], TransactionName::CapitalDeposit);
-        $player->main_balance -= $inputs['amount'];
-        $player->save();
-
-        ExchangeTransactionLog::create([
-            'user_id' => $player->id,
-            'amount' => $inputs['amount'],
-            'type' => 'mainBalanceToGaming',
-        ]);
-
-        return $this->success('', 'successfully exchange balance', 201);
-    }
-
-    public function GameToMain(Request $request)
-    {
-        $player = Auth::user();
-        $inputs = $request->validate([
-            'amount' => 'required',
-        ]);
-
-        if ($inputs['amount'] > $player->balanceFloat) {
-            return $this->error('', 'You do not have enough balance to transfer', 201);
-        }
-
-        (new WalletService)->withdraw($player, $inputs['amount'], TransactionName::CapitalWithdraw);
-        $player->main_balance += $inputs['amount'];
-        $player->save();
-
-        ExchangeTransactionLog::create([
-            'user_id' => $player->id,
-            'amount' => $inputs['amount'],
-            'type' => 'GamingToMainBalance',
-        ]);
-
-        return $this->success('', 'successfully exchange balance', 201);
-    }
+    // Note: MainToGame and GameToMain methods removed since main_balance column has been removed
+    // Now there's only one balance column, so no need for balance transfers between columns
 
     public function exchangeTransactionLog()
     {

@@ -10,8 +10,7 @@ use App\Models\PlaceBet;
 use App\Models\User;
 use App\Services\ApiResponseService;
 use App\Services\WalletService;
-use Bavix\Wallet\Exceptions\InsufficientFunds; // Import specific Wallet exception
-use Bavix\Wallet\Models\Transaction as WalletTransaction;
+use App\Models\CustomTransaction;
 use Exception; // Generic exception for broader errors
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
@@ -140,14 +139,7 @@ class WithdrawController extends Controller
                     continue;
                 }
 
-                if (! $user->wallet) {
-                    Log::warning('Wallet missing for member during withdraw/bet request', ['member_account' => $memberAccount]);
-                    $responseData[] = $this->buildErrorResponse($memberAccount, $productCode, 0.00, SeamlessWalletCode::MemberNotExist, 'Member wallet missing', $request->currency);
-
-                    continue;
-                }
-
-                $initialBalance = $user->wallet->balanceFloat; // Get initial balance before processing any transactions in this batch
+                $initialBalance = $user->balance; // Get initial balance before processing any transactions in this batch
                 $currentBalance = $initialBalance; // This will track balance changes within the batch for accurate reporting
 
                 foreach ($batchRequest['transactions'] ?? [] as $tx) {
@@ -210,7 +202,7 @@ class WithdrawController extends Controller
 
                     // Check for duplicate transactions (idempotency)
                     $isDuplicate = PlaceBet::where('transaction_id', $transactionId)->exists() ||
-                                   WalletTransaction::whereJsonContains('meta->seamless_transaction_id', $transactionId)->exists();
+                                   CustomTransaction::whereJsonContains('meta->seamless_transaction_id', $transactionId)->exists();
 
                     if ($isDuplicate) {
                         Log::warning('Duplicate transaction ID detected for withdraw/bet', ['tx_id' => $transactionId, 'member_account' => $memberAccount, 'action' => $action]);
@@ -232,17 +224,15 @@ class WithdrawController extends Controller
                     // Transaction-specific logic
                     DB::beginTransaction();
                     try {
-                        // Re-fetch user with wallet lock for concurrency safety
+                        // Re-fetch user with lock for concurrency safety
                         $user->refresh(); // Refresh user model to get latest balance
-                        $userWithWallet = User::with(['wallet' => function ($query) {
-                            $query->lockForUpdate();
-                        }])->find($user->id);
+                        $userWithWallet = User::where('id', $user->id)->lockForUpdate()->first();
 
-                        // if (! $userWithWallet || ! $userWithWallet->wallet) {
-                        //     throw new Exception('User or wallet not found during transaction locking.');
-                        // }
+                        if (! $userWithWallet) {
+                            throw new Exception('User not found during transaction locking.');
+                        }
 
-                        $beforeTransactionBalance = $userWithWallet->wallet->balanceFloat;
+                        $beforeTransactionBalance = $userWithWallet->balance;
 
                         Log::info('Withdraw Debug', [
                             'before_balance' => $beforeTransactionBalance,
@@ -326,7 +316,7 @@ class WithdrawController extends Controller
 
                         // Perform the withdrawal
                         $this->walletService->withdraw($userWithWallet, $convertedAmount, TransactionName::Withdraw, $meta);
-                        $newBalance = $userWithWallet->wallet->balanceFloat;
+                        $newBalance = $userWithWallet->balance;
 
                         $transactionCode = SeamlessWalletCode::Success->value;
                         $transactionMessage = 'Transaction processed successfully';
@@ -335,26 +325,26 @@ class WithdrawController extends Controller
                         DB::commit();
                         $currentBalance = $newBalance; // Update current balance for next transaction in the batch
 
-                    } catch (InsufficientFunds $e) {
+                    } catch (Exception $e) {
                         DB::rollBack();
-                        $transactionCode = SeamlessWalletCode::InsufficientBalance->value;
-                        $transactionMessage = 'Insufficient balance: '.$e->getMessage();
-                        Log::warning('Insufficient Funds for withdraw/bet', ['transaction_id' => $transactionId, 'member_account' => $memberAccount, 'amount' => $amount, 'error' => $e->getMessage()]);
-                        $this->logPlaceBet($batchRequest, $request, $tx, 'failed', $request->request_time, $transactionMessage, $beforeTransactionBalance ?? $user->balanceFloat, $currentBalance);
-
-                    } catch (Exception $e) { // Catch all other exceptions
-                        DB::rollBack();
-                        $transactionCode = SeamlessWalletCode::InternalServerError->value;
-                        $transactionMessage = 'Failed to process transaction: '.$e->getMessage();
-                        Log::error('Error processing withdraw/bet transaction', ['transaction_id' => $transactionId, 'action' => $action, 'error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
-                        $this->logPlaceBet($batchRequest, $request, $tx, 'failed', $request->request_time, $transactionMessage, $beforeTransactionBalance ?? $user->balanceFloat, $currentBalance);
+                        // Check if it's an insufficient balance error
+                        if (str_contains($e->getMessage(), 'Insufficient balance')) {
+                            $transactionCode = SeamlessWalletCode::InsufficientBalance->value;
+                            $transactionMessage = 'Insufficient balance: '.$e->getMessage();
+                            Log::warning('Insufficient Funds for withdraw/bet', ['transaction_id' => $transactionId, 'member_account' => $memberAccount, 'amount' => $amount, 'error' => $e->getMessage()]);
+                        } else {
+                            $transactionCode = SeamlessWalletCode::InternalServerError->value;
+                            $transactionMessage = 'Failed to process transaction: '.$e->getMessage();
+                            Log::error('Error processing withdraw/bet transaction', ['transaction_id' => $transactionId, 'action' => $action, 'error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+                        }
+                        $this->logPlaceBet($batchRequest, $request, $tx, 'failed', $request->request_time, $transactionMessage, $beforeTransactionBalance ?? $user->balance, $currentBalance);
                     }
 
                     // Add the response for the current transaction
                     $responseData[] = [
                         'member_account' => $memberAccount,
                         'product_code' => (int) $productCode,
-                        'before_balance' => $this->formatBalance($beforeTransactionBalance ?? $user->balanceFloat, $request->currency),
+                        'before_balance' => $this->formatBalance($beforeTransactionBalance ?? $user->balance, $request->currency),
                         'balance' => $this->formatBalance($currentBalance, $request->currency),
                         'code' => $transactionCode,
                         'message' => $transactionMessage,

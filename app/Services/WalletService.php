@@ -3,37 +3,35 @@
 namespace App\Services;
 
 use App\Enums\TransactionName;
-use App\Enums\TransactionType;
 use App\Models\User;
-use Bavix\Wallet\External\Dto\Extra;
-use Bavix\Wallet\External\Dto\Option;
 
 class WalletService
 {
+    protected CustomWalletService $customWalletService;
+
+    public function __construct(CustomWalletService $customWalletService)
+    {
+        $this->customWalletService = $customWalletService;
+    }
+
     public function forceTransfer(User $from, User $to, float $amount, TransactionName $transaction_name, array $meta = [])
     {
-        return $from->forceTransferFloat($to, $amount, new Extra(
-            deposit: new Option(self::buildTransferMeta($to, $from, $transaction_name, $meta)),
-            withdraw: new Option(self::buildTransferMeta($from, $to, $transaction_name, $meta))
-        ));
+        return $this->customWalletService->forceTransfer($from, $to, $amount, $transaction_name, $meta);
     }
 
     public function transfer(User $from, User $to, float $amount, TransactionName $transaction_name, array $meta = [])
     {
-        return $from->forceTransferFloat($to, $amount, new Extra(
-            deposit: new Option(self::buildTransferMeta($to, $from, $transaction_name, $meta)),
-            withdraw: new Option(self::buildTransferMeta($from, $to, $transaction_name, $meta))
-        ));
+        return $this->customWalletService->transfer($from, $to, $amount, $transaction_name, $meta);
     }
 
     public function deposit(User $user, float $amount, TransactionName $transaction_name, array $meta = [])
     {
-        $user->depositFloat($amount, self::buildDepositMeta($user, $user, $transaction_name, $meta));
+        return $this->customWalletService->deposit($user, $amount, $transaction_name, $meta);
     }
 
     public function withdraw(User $user, float $amount, TransactionName $transaction_name, array $meta = [])
     {
-        $user->withdrawFloat($amount, self::buildDepositMeta($user, $user, $transaction_name, $meta));
+        return $this->customWalletService->withdraw($user, $amount, $transaction_name, $meta);
     }
 
     public static function buildTransferMeta(User $user, User $target_user, TransactionName $transaction_name, array $meta = [])

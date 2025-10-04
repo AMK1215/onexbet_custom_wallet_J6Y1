@@ -33,8 +33,5 @@ Route::post('/login', [LoginController::class, 'login'])->name('login');
 Route::post('logout', [LoginController::class, 'logout'])->name('logout');
 Route::get('get-change-password', [LoginController::class, 'changePassword'])->name('getChangePassword');
 Route::post('update-password/{user}', [LoginController::class, 'updatePassword'])->name('updatePassword');
-
-
-
 Route::get('admin/product/game-list', [\App\Http\Controllers\Admin\ProductController::class, 'GameListFetch'])->name('admin.product.game-list');
 

@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Log; // Ensure this is correctly imported if you 
 class TwoDPlayService
 {
     /**
-     * Handles the logic for placing a 2D bet using custom main_balance.
+     * Handles the logic for placing a 2D bet using custom balance.
      *
      * @param  float  $totalBetAmount  The total sum of all individual bet amounts.
      * @param  array  $amounts  An array of individual bets, e.g., [['num' => '01', 'amount' => 100], ...].
@@ -59,8 +59,8 @@ class TwoDPlayService
             $overallBreakAmount = $overallTwoDLimit->two_d_limit;
             Log::info("Overall 2D break limit: {$overallBreakAmount}");
 
-            if ($user->main_balance < $totalBetAmount) {
-                throw new \Exception('Insufficient funds in your main balance.');
+            if ($user->balance < $totalBetAmount) {
+                throw new \Exception('Insufficient funds in your balance.');
             }
 
             $overLimitDigits = $this->checkAllLimits($amounts, $sessionType, $gameDate, $overallBreakAmount, $userPersonalLimit);
@@ -73,13 +73,13 @@ class TwoDPlayService
             $slipNo = $this->generateUniqueSlipNumber();
             Log::info("Generated Slip No for batch: {$slipNo}");
 
-            $beforeBalance = $user->main_balance;
+            $beforeBalance = $user->balance;
 
-            // Deduct total amount from user's main_balance
-            $user->main_balance -= $totalBetAmount;
+            // Deduct total amount from user's balance
+            $user->balance -= $totalBetAmount;
             $user->save();
 
-            $afterBalance = $user->main_balance;
+            $afterBalance = $user->balance;
             $playerName = $user->user_name;
             $agentId = $user->agent_id;
             $gameDate = Carbon::now()->format('Y-m-d');
