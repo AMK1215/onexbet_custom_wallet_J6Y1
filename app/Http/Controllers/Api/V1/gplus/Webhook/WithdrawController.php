@@ -348,6 +348,17 @@ class WithdrawController extends Controller
                     // Pass $memberAccount to logPlaceBet to ensure it's logged
                         $this->logPlaceBet($batchRequest, $request, $tx, 'completed', $request->request_time, $transactionMessage, $beforeTransactionBalance, $newBalance);
 
+                        // Add success response
+                        $responseData[] = [
+                            'member_account' => $memberAccount,
+                            'product_code' => (int) $productCode,
+                            'before_balance' => $this->formatBalance($beforeTransactionBalance, $request->currency),
+                            'balance' => $this->formatBalance($newBalance, $request->currency),
+                            'code' => $transactionCode,
+                            'message' => $transactionMessage,
+                            'transaction_id' => $transactionId,
+                        ];
+
                         DB::commit();
                         $currentBalance = $newBalance; // Update current balance for next transaction in the batch
 
@@ -375,24 +386,6 @@ class WithdrawController extends Controller
                     $this->logPlaceBet($batchRequest, $request, $tx, 'failed', $request->request_time, $transactionMessage, $beforeTransactionBalance, $currentBalance);
                     }
 
-                    // Add the response for the current transaction
-                // This block ensures a response is always added for each transaction,
-                // even if 'continue' was called earlier after building a specific response.
-                // We need to ensure we don't add duplicate responses for the same transaction.
-                // The `continue` statement handles adding the response before continuing.
-                // So, this outer response addition should only happen if not already handled.
-                $lastResponse = end($responseData);
-                if (!($lastResponse && ($lastResponse['member_account'] === $memberAccount && isset($lastResponse['transaction_id']) && $lastResponse['transaction_id'] === $transactionId))) {
-                    $responseData[] = [
-                        'member_account' => $memberAccount,
-                        'product_code' => (int) $productCode,
-                        'before_balance' => $this->formatBalance($beforeTransactionBalance, $request->currency),
-                        'balance' => $this->formatBalance($currentBalance, $request->currency),
-                        'code' => $transactionCode,
-                        'message' => $transactionMessage,
-                        'transaction_id' => $transactionId, // Include transaction_id for better tracking in response
-                    ];
-                }
             }
         }
 
