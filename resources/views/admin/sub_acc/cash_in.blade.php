@@ -26,7 +26,7 @@
                     </div>
                 </div>
                 <div class="mb-3">
-                    <span class="badge badge-success">{{ $agent->user_name }} : Agent Balance : {{ number_format(optional($agent)->balanceFloat, 2) }}</span>
+                    <span class="badge badge-success">{{ $agent->user_name }} : Agent Balance : {{ number_format(optional($agent)->balance, 2) }}</span>
                 </div>
                 <form action="{{route('admin.subacc.player.makeCashIn', $player->id)}}" method="POST">
                     @csrf
@@ -43,11 +43,11 @@
                                 </div>
                                 <div class="form-group">
                                     <label>Current Balance<span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" name="" value="{{ number_format($player->balanceFloat, 2) }}" readonly>
+                                    <input type="text" class="form-control" name="" value="{{ number_format($player->balance, 2) }}" readonly>
                                 </div>
                                 <div class="form-group">
                                     <label>Amount<span class="text-danger">*</span></label>
-                                    <span class="badge badge-success">Max:{{ number_format(optional(auth()->user()->wallet)->balanceFloat, 2) }}</span>
+                                    <span class="badge badge-success">Max:{{ number_format(auth()->user()->balance, 2) }}</span>
                                     <input type="text" class="form-control" name="amount">
                                     @error('amount')
                                     <div class="text-danger">{{ $message }}</div>

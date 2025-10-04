@@ -6,7 +6,7 @@ use App\Enums\TransactionName;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\WithDrawRequest;
-use App\Services\WalletService;
+use App\Services\CustomWalletService;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -107,7 +107,7 @@ class WithDrawRequestController extends Controller
             $old_balance = $player->balance;
 
             try {
-                app(WalletService::class)->transfer($player, $agent, $request->amount,
+                app(CustomWalletService::class)->transfer($player, $agent, $request->amount,
                     TransactionName::Withdraw, [
                         'old_balance' => $old_balance,
                         'new_balance' => $old_balance - $request->amount,

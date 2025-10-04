@@ -38,7 +38,7 @@
                                     <td>{{$loop->iteration}}</td>
                                     <td>{{$user->user_name}}</td>
                                     <td>{{$user->name}}</td>
-                                    <td>{{$user->balanceFloat}}</td>
+                                    <td>{{$user->balance}}</td>
                                     <td>{{ number_format($user->poneWinePlayer->sum('win_lose_amt') + $user->results->sum('net_win') + $user->betNResults->sum('net_win'), 2)}}</td>
                                     </tr>
                                 @endforeach

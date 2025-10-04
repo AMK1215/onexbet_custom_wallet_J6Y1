@@ -47,7 +47,7 @@
                                     <td>
                                         <p>{{ $player->status == 1 ? 'Active' : 'Inactive' }}</p>
                                     </td>
-                                    <td>{{ number_format($player->balanceFloat) }}</td>
+                                    <td>{{ number_format($player->balance) }}</td>
                                     <td>{{ $player->created_at->timezone('Asia/Yangon')->format('d-m-Y H:i:s') }}</td>
                                 </tr>
                                 @endforeach

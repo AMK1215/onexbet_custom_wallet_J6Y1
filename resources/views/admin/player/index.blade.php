@@ -64,7 +64,7 @@
                                                         <small
                                                             class="badge bg-gradient-{{ $user->status == 1 ? 'success' : 'danger' }}">{{ $user->status == 1 ? 'active' : 'inactive' }}</small>
                                                     </td>
-                                                    <td class="text-bold">{{ number_format($user->balanceFloat) }}</td>
+                                                    <td class="text-bold">{{ number_format($user->balance) }}</td>
                                                     <!-- <td>{{ $user->total_spin }}</td> -->
                                                     <!-- <td>{{ number_format($user->total_bet_amount, 2) }}</td>
                                                     <td>{{ number_format($user->total_payout_amount, 2) }}</td>

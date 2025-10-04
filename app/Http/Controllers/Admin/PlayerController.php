@@ -13,7 +13,7 @@ use App\Models\Report;
 use App\Models\TransferLog;
 use App\Models\User;
 use App\Services\UserService;
-use App\Services\WalletService;
+use App\Services\CustomWalletService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -148,85 +148,7 @@ class PlayerController extends Controller
 
         return view('admin.player.index', compact('users'));
     }
-    // public function index()
-    // {
-
-    //     // Step 1: Get all descendant player IDs under this owner/agent/subagent using recursive CTE
-    //     $startId = auth()->id();
-
-    //     $playerIds = collect(DB::select("
-    //     WITH RECURSIVE descendants AS (
-    //         SELECT id FROM users WHERE id = ?
-    //         UNION ALL
-    //         SELECT u.id FROM users u INNER JOIN descendants d ON u.agent_id = d.id
-    //     )
-    //     SELECT id FROM users WHERE id IN (SELECT id FROM descendants) AND type = '40'
-    // ", [$startId]))->pluck('id');
-
-    //     // Step 2: Eager-load roles for the players, and whatever else you want
-    //     $players = User::with(['roles', 'placeBets'])
-    //         ->whereIn('id', $playerIds)
-    //         ->select('id', 'name', 'user_name', 'phone', 'status', 'referral_code')
-    //         ->orderBy('created_at', 'desc')
-    //         ->get();
-
-    //     // Step 3: PlaceBet stats (classic)
-    //     // 3.1 Total spins (distinct spins, e.g. by wager_code)
-    //     $spinTotals = \App\Models\PlaceBet::query()
-    //         ->selectRaw('player_id, COUNT(DISTINCT wager_code) as total_spin')
-    //         ->whereIn('player_id', $playerIds)
-    //         ->groupBy('player_id')
-    //         ->get()
-    //         ->keyBy('player_id');
-
-    //     // 3.2 Total bets (sum for BET)
-    //     $betTotals = \App\Models\PlaceBet::query()
-    //         ->selectRaw('player_id, SUM(bet_amount) as total_bet_amount')
-    //         ->whereIn('player_id', $playerIds)
-    //         ->where('wager_status', 'SETTLED')
-    //         ->groupBy('player_id')
-    //         ->get()
-    //         ->keyBy('player_id');
-
-    //     // 3.3 Total payout (sum for SETTLED)
-    //     $settleTotals = \App\Models\PlaceBet::query()
-    //         ->selectRaw('player_id, SUM(prize_amount) as total_payout_amount')
-    //         ->whereIn('player_id', $playerIds)
-    //         ->where('wager_status', 'SETTLED')
-    //         ->groupBy('player_id')
-    //         ->get()
-    //         ->keyBy('player_id');
-
-    //     // Step 4: Build users collection with transfer logs for each player
-    //     $users = $players->map(function ($player) use ($spinTotals, $betTotals, $settleTotals) {
-    //         $spin = $spinTotals->get($player->id);
-    //         $bet = $betTotals->get($player->id);
-    //         $settle = $settleTotals->get($player->id);
-
-    //         // Get transfer logs where this player is either from or to (eager-load fromUser and toUser)
-    //         $logs = \App\Models\TransferLog::with(['fromUser', 'toUser'])
-    //             ->where('from_user_id', $player->id)
-    //             ->orWhere('to_user_id', $player->id)
-    //             ->latest()
-    //             ->get();
-
-    //         return (object) [
-    //             'id' => $player->id,
-    //             'name' => $player->name,
-    //             'user_name' => $player->user_name,
-    //             'phone' => $player->phone,
-    //             'balanceFloat' => $player->balanceFloat,
-    //             'status' => $player->status,
-    //             'roles' => $player->roles->pluck('name')->toArray(),
-    //             'total_spin' => $spin->total_spin ?? 0,
-    //             'total_bet_amount' => $bet->total_bet_amount ?? 0,
-    //             'total_payout_amount' => $settle->total_payout_amount ?? 0,
-    //             'logs' => $logs,
-    //         ];
-    //     });
-
-    //     return view('admin.player.index', compact('users'));
-    // }
+    
 
     /**
      * Display a listing of the users with their agents.
@@ -294,7 +216,7 @@ class PlayerController extends Controller
             $user->roles()->sync(self::PLAYER_ROLE);
 
             // Always process the amount (now defaults to 0)
-            app(WalletService::class)->transfer($agent, $user, $inputs['amount'],
+            app(CustomWalletService::class)->transfer($agent, $user, $inputs['amount'],
                 TransactionName::CreditTransfer, [
                     'old_balance' => $user->balance,
                     'new_balance' => $user->balance + $inputs['amount'],
@@ -443,7 +365,7 @@ class PlayerController extends Controller
                 return redirect()->back()->with('error', 'You do not have enough balance to transfer!');
             }
 
-            app(WalletService::class)->transfer($agent, $player, $request->validated('amount'),
+            app(CustomWalletService::class)->transfer($agent, $player, $request->validated('amount'),
                 TransactionName::CreditTransfer, [
                     'note' => $request->note,
                     'old_balance' => $player->balance,
@@ -508,7 +430,7 @@ class PlayerController extends Controller
                 return redirect()->back()->with('error', 'You do not have enough balance to transfer!');
             }
 
-            app(WalletService::class)->transfer($player, $agent, $request->validated('amount'),
+            app(CustomWalletService::class)->transfer($player, $agent, $request->validated('amount'),
                 TransactionName::DebitTransfer, [
                     'note' => $request->note,
                     'old_balance' => $player->balance,

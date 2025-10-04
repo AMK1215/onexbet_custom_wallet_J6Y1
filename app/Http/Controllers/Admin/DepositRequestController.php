@@ -7,7 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\DepositRequest;
 use App\Models\User;
 use App\Models\WithDrawRequest;
-use App\Services\WalletService;
+use App\Services\CustomWalletService;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -81,7 +81,7 @@ class DepositRequestController extends Controller
 
             if ($request->status == 1) {
                 $old_balance = $player->balance;
-                app(WalletService::class)->transfer($agent, $player, $request->amount,
+                app(CustomWalletService::class)->transfer($agent, $player, $request->amount,
                     TransactionName::TopUp, [
                         'old_balance' => $old_balance,
                         'new_balance' => $old_balance + $request->amount,

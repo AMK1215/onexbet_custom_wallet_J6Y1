@@ -70,7 +70,7 @@
                         <div class="col-6"><strong>Agent Balance:</strong></div>
                         <div class="col-6">
                             <span class="badge bg-info text-dark">
-                                {{ $subAgent->agent ? number_format($subAgent->agent->balanceFloat, 2) : 'N/A' }}
+                                {{ $subAgent->agent ? number_format($subAgent->agent->balance, 2) : 'N/A' }}
                             </span>
                         </div>
                     </div>

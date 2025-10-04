@@ -12,7 +12,7 @@ use App\Models\Admin\Permission;
 use App\Models\Admin\Role;
 use App\Models\TransferLog;
 use App\Models\User;
-use App\Services\WalletService;
+use App\Services\CustomWalletService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -431,7 +431,7 @@ class SubAccountController extends Controller
                 return redirect()->back()->with('error', 'You do not have enough balance to transfer!');
             }
 
-            app(WalletService::class)->transfer($agent, $player, $request->validated('amount'),
+            app(CustomWalletService::class)->transfer($agent, $player, $request->validated('amount'),
                 TransactionName::CreditTransfer, [
                     'note' => $request->note,
                     'old_balance' => $player->balance,
@@ -501,7 +501,7 @@ class SubAccountController extends Controller
                 return redirect()->back()->with('error', 'You do not have enough balance to transfer!');
             }
 
-            app(WalletService::class)->transfer($player, $agent, $request->validated('amount'),
+            app(CustomWalletService::class)->transfer($player, $agent, $request->validated('amount'),
                 TransactionName::DebitTransfer, [
                     'note' => $request->note,
                     'old_balance' => $player->balance,
@@ -636,7 +636,7 @@ class SubAccountController extends Controller
             $user->roles()->sync(self::PLAYER_ROLE);
 
             if (isset($inputs['amount'])) {
-                app(WalletService::class)->transfer($agent, $user, $inputs['amount'],
+                app(CustomWalletService::class)->transfer($agent, $user, $inputs['amount'],
                     TransactionName::CreditTransfer, [
                         'old_balance' => $user->balance,
                         'new_balance' => $user->balance + $request->amount,

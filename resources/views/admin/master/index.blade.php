@@ -57,7 +57,7 @@
                                             class="badge bg-gradient-{{ $user->status == 1 ? 'success' : 'danger' }}">{{ $user->status == 1 ? 'active' : 'inactive' }}</small>
 
                                     </td>
-                                    <td class="text-bold">{{ number_format($user->balanceFloat) }}</td>
+                                    <td class="text-bold">{{ number_format($user->balance) }}</td>
 
                                         {{-- // $poneWintAmt = $user->children->flatMap->children->flatMap->poneWinePlayer->sum('win_lose_amt');
                                         // $result = $user->children->flatMap->children->flatMap->results->sum('net_win');

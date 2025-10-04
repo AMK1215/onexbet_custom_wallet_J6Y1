@@ -9,7 +9,7 @@ use App\Http\Requests\MasterRequest;
 use App\Http\Requests\TransferLogRequest;
 use App\Models\TransferLog;
 use App\Models\User;
-use App\Services\WalletService;
+use App\Services\CustomWalletService;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Contracts\View\View;
@@ -130,7 +130,7 @@ class MasterController extends Controller
         $user->permissions()->sync($permissions->pluck('id'));
 
         if (isset($inputs['amount'])) {
-            app(WalletService::class)->transfer(
+            app(CustomWalletService::class)->transfer(
                 $admin,
                 $user,
                 $inputs['amount'],
@@ -262,7 +262,7 @@ class MasterController extends Controller
                 throw new \Exception('You do not have enough balance to transfer!');
             }
 
-            app(WalletService::class)->transfer(
+            app(CustomWalletService::class)->transfer(
                 $admin,
                 $agent,
                 $request->amount,
@@ -311,7 +311,7 @@ class MasterController extends Controller
             }
 
             // Transfer money
-            app(WalletService::class)->transfer(
+            app(CustomWalletService::class)->transfer(
                 $agent,
                 $admin,
                 $request->amount,

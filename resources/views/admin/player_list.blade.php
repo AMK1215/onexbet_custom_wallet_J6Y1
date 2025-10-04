@@ -36,7 +36,7 @@
                                 <tr>
                                     <td>{{$loop->iteration}}</td>
                                     <td>{{$user->user_name}}</td>
-                                    <td>{{ number_format(optional($user->wallet)->balanceFloat, 2) }}</td>
+                                    <td>{{ number_format($user->balance, 2) }}</td>
                                 </tr>
                                 @endforeach
 

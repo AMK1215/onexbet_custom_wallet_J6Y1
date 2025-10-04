@@ -74,7 +74,7 @@
     <td>{{ $player->name }}</td>
     <td>{{ $player->user_name }}</td>
     <td>{{ $player->phone }}</td>
-    <td>{{ number_format($player->balanceFloat, 2) }}</td>
+    <td>{{ number_format($player->balance, 2) }}</td>
     <td>{{ $player->total_stake }}</td>
     <td>{{ number_format($player->total_bet, 2) }}</td>
     <td>{{ number_format($player->total_payout, 2) }}</td>
