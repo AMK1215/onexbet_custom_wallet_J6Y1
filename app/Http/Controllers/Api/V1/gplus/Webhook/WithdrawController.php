@@ -256,7 +256,7 @@ class WithdrawController extends Controller
                     // Pass $memberAccount to logPlaceBet to ensure it's logged
                     $this->logPlaceBet($batchRequest, $request, $tx, 'info', $request->request_time, $transactionMessage, $currentBalance, $currentBalance);
                     $decimalPlaces = $this->getDecimalPlaces($request->currency);
-                    $formattedBalance = number_format($this->formatBalance($currentBalance, $request->currency), $decimalPlaces, '.', '');
+                    $formattedBalance = (float) number_format($this->formatBalance($currentBalance, $request->currency), $decimalPlaces, '.', '');
                     
                     $responseData[] = [
                         'member_account' => $memberAccount,
@@ -330,7 +330,7 @@ class WithdrawController extends Controller
                             );
                             DB::rollBack(); // Or commit, but rollback is more "traditional" if nothing changed
                             $decimalPlaces = $this->getDecimalPlaces($request->currency);
-                            $formattedBalance = number_format($this->formatBalance($beforeTransactionBalance, $request->currency), $decimalPlaces, '.', '');
+                            $formattedBalance = (float) number_format($this->formatBalance($beforeTransactionBalance, $request->currency), $decimalPlaces, '.', '');
                             
                             $responseData[] = [
                                 'member_account' => $memberAccount,
@@ -358,8 +358,8 @@ class WithdrawController extends Controller
                         $responseData[] = [
                             'member_account' => $memberAccount,
                             'product_code' => (int) $productCode,
-                            'before_balance' => number_format($this->formatBalance($beforeTransactionBalance, $request->currency), $this->getDecimalPlaces($request->currency), '.', ''),
-                            'balance' => number_format($this->formatBalance($newBalance, $request->currency), $this->getDecimalPlaces($request->currency), '.', ''),
+                            'before_balance' => (float) number_format($this->formatBalance($beforeTransactionBalance, $request->currency), $this->getDecimalPlaces($request->currency), '.', ''),
+                            'balance' => (float) number_format($this->formatBalance($newBalance, $request->currency), $this->getDecimalPlaces($request->currency), '.', ''),
                             'code' => $transactionCode,
                             'message' => $transactionMessage,
                             'transaction_id' => $transactionId,
@@ -404,7 +404,7 @@ class WithdrawController extends Controller
     private function buildErrorResponse(string $memberAccount, string|int $productCode, float $balance, SeamlessWalletCode $code, string $message, string $currency): array
     {
         $decimalPlaces = $this->getDecimalPlaces($currency);
-        $formattedBalance = number_format($this->formatBalance($balance, $currency), $decimalPlaces, '.', '');
+        $formattedBalance = (float) number_format($this->formatBalance($balance, $currency), $decimalPlaces, '.', '');
         
         return [
             'member_account' => $memberAccount,
