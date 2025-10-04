@@ -276,8 +276,8 @@ class DepositController extends Controller
 
                         $afterTransactionBalance = $userWithWallet->balance;
 
-                        $beforeBalanceValue = round($beforeTransactionBalance / $this->getCurrencyValue($request->currency), 4);
-                        $afterBalanceValue = round($afterTransactionBalance / $this->getCurrencyValue($request->currency), 4);
+                        $beforeBalanceValue = $this->formatBalanceForResponse($beforeTransactionBalance, $request->currency);
+                        $afterBalanceValue = $this->formatBalanceForResponse($afterTransactionBalance, $request->currency);
                         
                         $results[] = [
                             'member_account' => $memberAccount,
@@ -324,7 +324,7 @@ class DepositController extends Controller
      */
     private function buildErrorResponse(string $memberAccount, string $productCode, float $balance, SeamlessWalletCode $code, string $message, string $currency): array
     {
-        $formattedBalanceValue = round($balance / $this->getCurrencyValue($currency), 4);
+        $formattedBalanceValue = $this->formatBalanceForResponse($balance, $currency);
 
         return [
             'member_account' => $memberAccount,
@@ -359,6 +359,23 @@ class DepositController extends Controller
             'KHR2' => 100,
             default => 1,
         };
+    }
+
+    /**
+     * Format balance for response (matching GetBalanceController logic)
+     */
+    private function formatBalanceForResponse(float $balance, string $currency): float
+    {
+        $specialCurrencies = ['IDR2', 'KRW2', 'MMK2', 'VND2', 'LAK2', 'KHR2'];
+        
+        if (in_array($currency, $specialCurrencies)) {
+            $balance = $balance / 1000; // Apply 1:1000 conversion here (matching working version)
+            $balance = round($balance, 4);
+        } else {
+            $balance = round($balance, 2);
+        }
+        
+        return (float) $balance;
     }
 
     /**

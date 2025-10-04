@@ -69,7 +69,7 @@ class GetBalanceController extends Controller
             if ($user && $user->balance) {
                 $balance = $user->balance;
                 if (in_array($request->currency, $specialCurrencies)) {
-                    $balance = $balance / $this->getCurrencyValue($request->currency);
+                    $balance = $balance / 1000; // Apply 1:1000 conversion here (matching working version)
                     $balance = round($balance, 4);
                 } else {
                     $balance = round($balance, 2);

@@ -255,7 +255,7 @@ class WithdrawController extends Controller
                     $transactionMessage = 'Debit action with zero/negative amount.';
                     // Pass $memberAccount to logPlaceBet to ensure it's logged
                     $this->logPlaceBet($batchRequest, $request, $tx, 'info', $request->request_time, $transactionMessage, $currentBalance, $currentBalance);
-                    $formattedBalance = round($currentBalance / $this->getCurrencyValue($request->currency), 4);
+                    $formattedBalance = $this->formatBalanceForResponse($currentBalance, $request->currency);
                     
                     $responseData[] = [
                         'member_account' => $memberAccount,
@@ -328,7 +328,7 @@ class WithdrawController extends Controller
                                 $beforeTransactionBalance, $beforeTransactionBalance
                             );
                             DB::rollBack(); // Or commit, but rollback is more "traditional" if nothing changed
-                            $formattedBalance = round($beforeTransactionBalance / $this->getCurrencyValue($request->currency), 4);
+                            $formattedBalance = $this->formatBalanceForResponse($beforeTransactionBalance, $request->currency);
                             
                             $responseData[] = [
                                 'member_account' => $memberAccount,
@@ -353,8 +353,8 @@ class WithdrawController extends Controller
                         $this->logPlaceBet($batchRequest, $request, $tx, 'completed', $request->request_time, $transactionMessage, $beforeTransactionBalance, $newBalance);
 
                         // Add success response with proper decimal formatting
-                        $beforeBalanceValue = round($beforeTransactionBalance / $this->getCurrencyValue($request->currency), 4);
-                        $afterBalanceValue = round($newBalance / $this->getCurrencyValue($request->currency), 4);
+                        $beforeBalanceValue = $this->formatBalanceForResponse($beforeTransactionBalance, $request->currency);
+                        $afterBalanceValue = $this->formatBalanceForResponse($newBalance, $request->currency);
 
                         $responseData[] = [
                             'member_account' => $memberAccount,
@@ -404,7 +404,7 @@ class WithdrawController extends Controller
      */
     private function buildErrorResponse(string $memberAccount, string|int $productCode, float $balance, SeamlessWalletCode $code, string $message, string $currency): array
     {
-        $formattedBalanceValue = round($balance / $this->getCurrencyValue($currency), 4);
+        $formattedBalanceValue = $this->formatBalanceForResponse($balance, $currency);
         
         return [
             'member_account' => $memberAccount,
@@ -439,6 +439,23 @@ class WithdrawController extends Controller
             'KHR2' => 100,
             default => 1,
         };
+    }
+
+    /**
+     * Format balance for response (matching GetBalanceController logic)
+     */
+    private function formatBalanceForResponse(float $balance, string $currency): float
+    {
+        $specialCurrencies = ['IDR2', 'KRW2', 'MMK2', 'VND2', 'LAK2', 'KHR2'];
+        
+        if (in_array($currency, $specialCurrencies)) {
+            $balance = $balance / 1000; // Apply 1:1000 conversion here (matching working version)
+            $balance = round($balance, 4);
+        } else {
+            $balance = round($balance, 2);
+        }
+        
+        return (float) $balance;
     }
 
     /**
