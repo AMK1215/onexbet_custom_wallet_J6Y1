@@ -67,12 +67,22 @@ class GetBalanceController extends Controller
 
             $user = User::where('user_name', $req['member_account'])->first();
             if ($user) {
-                $balance = $user->balance;
+                $balance = $user->balance; // Using custom wallet balance instead of $user->wallet->balanceFloat
                 if (in_array($request->currency, $specialCurrencies)) {
-                    $balance = $balance / 1000; // Apply 1:1000 conversion here
+                    // Use the same conversion logic as DepositController/WithdrawController
+                    $conversionValue = match ($request->currency) {
+                        'IDR2' => 100,
+                        'KRW2' => 10,
+                        'MMK2' => 1000,
+                        'VND2' => 1000,
+                        'LAK2' => 10,
+                        'KHR2' => 100,
+                        default => 1,
+                    };
+                    $balance = $balance / $conversionValue;
                     $balance = round($balance, 4);
                 } else {
-                    $balance = round($balance, 4); // Changed from 2 to 4 decimal places
+                    $balance = round($balance, 2); // Match working version - 2 decimal places for regular currencies
                 }
                 $results[] = [
                     'member_account' => $req['member_account'],

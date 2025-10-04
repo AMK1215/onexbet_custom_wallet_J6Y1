@@ -341,9 +341,9 @@ class DepositController extends Controller
     private function getCurrencyValue(string $currency): int
     {
         return match ($currency) {
-            'IDR2' => 100,
+            'IDR2' => 100, // Match working Laravel Wallet version exactly
             'KRW2' => 10,
-            'MMK2' => 1000, // Assuming MMK2 means 1/1000th unit
+            'MMK2' => 1000,
             'VND2' => 1000,
             'LAK2' => 10,
             'KHR2' => 100,

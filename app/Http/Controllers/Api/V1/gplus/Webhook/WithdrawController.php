@@ -398,7 +398,7 @@ class WithdrawController extends Controller
     {
         // Use a match expression for cleaner currency value mapping
         $divisor = match ($currency) {
-            'IDR2' => 100, // Example multiplier
+            'IDR2' => 100, // Match working Laravel Wallet version exactly
             'KRW2' => 10,
             'MMK2' => 1000,
             'VND2' => 1000,
@@ -407,7 +407,7 @@ class WithdrawController extends Controller
             default => 1,
         };
 
-        $precision = 4; // Always use 4 decimal places as required by gaming provider
+        $precision = in_array($currency, $this->specialCurrencies) ? 4 : 2; // Match working version logic
 
         return round($balance / $divisor, $precision);
     }
@@ -419,12 +419,12 @@ class WithdrawController extends Controller
     private function getCurrencyValue(string $currency): int|float
     {
         return match ($currency) {
-            'IDR2' => 1, // IDR2 should not be divided - same as regular currencies
-            'KRW2' => 1000,
+            'IDR2' => 100, // Match working Laravel Wallet version exactly
+            'KRW2' => 10,
             'MMK2' => 1000,
             'VND2' => 1000,
-            'LAK2' => 1000,
-            'KHR2' => 1000,
+            'LAK2' => 10,
+            'KHR2' => 100,
             default => 1,
         };
     }
