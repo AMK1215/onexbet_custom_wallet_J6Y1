@@ -8,7 +8,6 @@ use App\Http\Controllers\Controller;
 use App\Models\GameList;
 use App\Models\PlaceBet;
 use App\Models\CustomTransaction;
-use App\Models\Transaction as WalletTransaction;
 use App\Models\TransactionLog;
 use App\Models\User;
 use App\Services\ApiResponseService;
@@ -131,10 +130,10 @@ class DepositController extends Controller
                     continue;
                 }
 
-                if (! $user->wallet) {
-                   // Log::warning('Wallet missing for member', ['member_account' => $memberAccount]);
-                    $results[] = $this->buildErrorResponse($memberAccount, $productCode, 0.0, SeamlessWalletCode::MemberNotExist, 'Member wallet missing', $request->currency);
-
+                // Check if user has a valid balance (can be 0, but should be numeric)
+                if (!is_numeric($user->balance)) {
+                    Log::warning('Invalid balance for member during deposit request', ['member_account' => $memberAccount, 'balance' => $user->balance]);
+                    $results[] = $this->buildErrorResponse($memberAccount, $productCode, 0.0, SeamlessWalletCode::MemberNotExist, 'Invalid user balance', $request->currency);
                     continue;
                 }
 
@@ -213,12 +212,10 @@ class DepositController extends Controller
                     DB::beginTransaction();
                     try {
                         $user->refresh();
-                        $userWithWallet = User::with(['wallet' => function ($query) {
-                            $query->lockForUpdate();
-                        }])->find($user->id);
+                        $userWithWallet = User::where('id', $user->id)->lockForUpdate()->first();
 
-                        if (! $userWithWallet || ! $userWithWallet->wallet) {
-                            throw new Exception('User or wallet not found during transaction locking.');
+                        if (! $userWithWallet) {
+                            throw new Exception('User not found during transaction locking.');
                         }
 
                         $beforeTransactionBalance = $userWithWallet->balance;
