@@ -258,12 +258,8 @@ class WithdrawController extends Controller
                     $decimalPlaces = $this->getDecimalPlaces($request->currency);
                     $formattedBalanceValue = $this->formatBalance($currentBalance, $request->currency);
                     
-                    // Format the balance as a string with proper decimal places
-                    $formattedBalance = match($decimalPlaces) {
-                        2 => sprintf('%.2f', $formattedBalanceValue),
-                        4 => sprintf('%.4f', $formattedBalanceValue),
-                        default => (string) $formattedBalanceValue,
-                    };
+                    // Format the balance as a float with proper decimal places
+                    $formattedBalance = round($formattedBalanceValue, $decimalPlaces);
                     
                     $responseData[] = [
                         'member_account' => $memberAccount,
@@ -339,12 +335,8 @@ class WithdrawController extends Controller
                             $decimalPlaces = $this->getDecimalPlaces($request->currency);
                             $formattedBalanceValue = $this->formatBalance($beforeTransactionBalance, $request->currency);
                             
-                            // Format the balance as a string with proper decimal places
-                            $formattedBalance = match($decimalPlaces) {
-                                2 => sprintf('%.2f', $formattedBalanceValue),
-                                4 => sprintf('%.4f', $formattedBalanceValue),
-                                default => (string) $formattedBalanceValue,
-                            };
+                            // Format the balance as a float with proper decimal places
+                            $formattedBalance = round($formattedBalanceValue, $decimalPlaces);
                             
                             $responseData[] = [
                                 'member_account' => $memberAccount,
@@ -373,24 +365,15 @@ class WithdrawController extends Controller
                         $beforeBalanceValue = $this->formatBalance($beforeTransactionBalance, $request->currency);
                         $afterBalanceValue = $this->formatBalance($newBalance, $request->currency);
 
-                        // Format the balance values as strings with proper decimal places
-                        $beforeBalanceFormatted = match($decimalPlaces) {
-                            2 => sprintf('%.2f', $beforeBalanceValue),
-                            4 => sprintf('%.4f', $beforeBalanceValue),
-                            default => (string) $beforeBalanceValue,
-                        };
-
-                        $afterBalanceFormatted = match($decimalPlaces) {
-                            2 => sprintf('%.2f', $afterBalanceValue),
-                            4 => sprintf('%.4f', $afterBalanceValue),
-                            default => (string) $afterBalanceValue,
-                        };
+                        // Format the balance values as floats with proper decimal places
+                        $beforeBalanceFormatted = round($beforeBalanceValue, $decimalPlaces);
+                        $afterBalanceFormatted = round($afterBalanceValue, $decimalPlaces);
 
                         $responseData[] = [
                             'member_account' => $memberAccount,
                             'product_code' => (int) $productCode,
-                            'before_balance' => $beforeBalanceFormatted, // <-- Will be a JSON string with decimal places
-                            'balance' => $afterBalanceFormatted,         // <-- Will be a JSON string with decimal places
+                            'before_balance' => $beforeBalanceFormatted, // <-- Will be a JSON number (float)
+                            'balance' => $afterBalanceFormatted,         // <-- Will be a JSON number (float)
                             'code' => $transactionCode,
                             'message' => $transactionMessage,
                             'transaction_id' => $transactionId,
@@ -437,18 +420,14 @@ class WithdrawController extends Controller
         $decimalPlaces = $this->getDecimalPlaces($currency);
         $formattedBalanceValue = $this->formatBalance($balance, $currency); // Use the formatted float value
         
-        // Format the balance as a string with proper decimal places
-        $finalBalance = match($decimalPlaces) {
-            2 => sprintf('%.2f', $formattedBalanceValue),
-            4 => sprintf('%.4f', $formattedBalanceValue),
-            default => (string) $formattedBalanceValue,
-        };
+        // Format the balance as a float with proper decimal places
+        $finalBalance = round($formattedBalanceValue, $decimalPlaces);
         
         return [
             'member_account' => $memberAccount,
             'product_code' => (int) $productCode, // Ensure it's an int
-            'before_balance' => $finalBalance,    // <-- Will be a JSON string with decimal places
-            'balance' => $finalBalance,          // <-- Will be a JSON string with decimal places
+            'before_balance' => $finalBalance,    // <-- Will be a JSON number (float)
+            'balance' => $finalBalance,          // <-- Will be a JSON number (float)
             'code' => $code->value,
             'message' => $message,
         ];

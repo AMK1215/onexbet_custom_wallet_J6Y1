@@ -79,17 +79,10 @@ class GetBalanceController extends Controller
                 $decimalPlaces = in_array($request->currency, $specialCurrencies) ? 4 : 2;
                 $balanceValue = round($balance, $decimalPlaces);
                 
-                // Format the balance as a string with proper decimal places
-                $formattedBalance = match($decimalPlaces) {
-                    2 => sprintf('%.2f', $balanceValue),
-                    4 => sprintf('%.4f', $balanceValue),
-                    default => (string) $balanceValue,
-                };
-                
                 $results[] = [
                     'member_account' => $req['member_account'],
                     'product_code' => $req['product_code'],
-                    'balance' => $formattedBalance, // <-- Will be a JSON string with decimal places
+                    'balance' => $balanceValue, // Return as numeric float
                     'code' => \App\Enums\SeamlessWalletCode::Success->value,
                     'message' => 'Success',
                 ];
@@ -106,4 +99,5 @@ class GetBalanceController extends Controller
 
         return ApiResponseService::success($results);
     }
+
 }

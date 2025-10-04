@@ -280,24 +280,15 @@ class DepositController extends Controller
                         $beforeBalanceValue = round($beforeTransactionBalance / $this->getCurrencyValue($request->currency), $decimalPlaces);
                         $afterBalanceValue = round($afterTransactionBalance / $this->getCurrencyValue($request->currency), $decimalPlaces);
                         
-                        // Format the balance values as strings with proper decimal places
-                        $beforeBalanceFormatted = match($decimalPlaces) {
-                            2 => sprintf('%.2f', $beforeBalanceValue),
-                            4 => sprintf('%.4f', $beforeBalanceValue),
-                            default => (string) $beforeBalanceValue,
-                        };
-
-                        $afterBalanceFormatted = match($decimalPlaces) {
-                            2 => sprintf('%.2f', $afterBalanceValue),
-                            4 => sprintf('%.4f', $afterBalanceValue),
-                            default => (string) $afterBalanceValue,
-                        };
+                        // Format the balance values as floats with proper decimal places
+                        $beforeBalanceFormatted = round($beforeBalanceValue, $decimalPlaces);
+                        $afterBalanceFormatted = round($afterBalanceValue, $decimalPlaces);
                         
                         $results[] = [
                             'member_account' => $memberAccount,
                             'product_code' => (int) $productCode,
-                            'before_balance' => $beforeBalanceFormatted, // <-- Will be a JSON string with decimal places
-                            'balance' => $afterBalanceFormatted,         // <-- Will be a JSON string with decimal places
+                            'before_balance' => $beforeBalanceFormatted, // <-- Will be a JSON number (float)
+                            'balance' => $afterBalanceFormatted,         // <-- Will be a JSON number (float)
                             'code' => SeamlessWalletCode::Success->value,
                             'message' => '',
                         ];
@@ -341,18 +332,14 @@ class DepositController extends Controller
         $decimalPlaces = in_array($currency, ['IDR2', 'KRW2', 'MMK2', 'VND2', 'LAK2', 'KHR2']) ? 4 : 2;
         $formattedBalanceValue = round($balance / $this->getCurrencyValue($currency), $decimalPlaces);
 
-        // Format the balance as a string with proper decimal places
-        $finalBalance = match($decimalPlaces) {
-            2 => sprintf('%.2f', $formattedBalanceValue),
-            4 => sprintf('%.4f', $formattedBalanceValue),
-            default => (string) $formattedBalanceValue,
-        };
+        // Format the balance as a float with proper decimal places
+        $finalBalance = round($formattedBalanceValue, $decimalPlaces);
 
         return [
             'member_account' => $memberAccount,
             'product_code' => (int) $productCode,
-            'before_balance' => $finalBalance,    // <-- Will be a JSON string with decimal places
-            'balance' => $finalBalance,          // <-- Will be a JSON string with decimal places
+            'before_balance' => $finalBalance,    // <-- Will be a JSON number (float)
+            'balance' => $finalBalance,          // <-- Will be a JSON number (float)
             'code' => $code->value,
             'message' => $message,
         ];
