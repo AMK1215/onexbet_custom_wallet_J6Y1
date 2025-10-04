@@ -33,7 +33,7 @@ class GetBalanceController extends Controller
         $isValidSign = strtolower($request->sign) === strtolower($expectedSign);
 
         // Allowed currencies
-        // $allowedCurrencies = ['MMK', 'VND', 'INR', 'MYR', 'AOA', 'EUR', 'IDR', 'PHP', 'THB', 'JPY', 'COP', 'IRR', 'CHF', 'USD', 'MXN', 'ETB', 'CAD', 'BRL', 'NGN', 'KES', 'KRW', 'TND', 'LBP', 'BDT', 'CZK', 'IDR2', 'KRW2', 'MMK2', 'VND2', 'LAK2', 'KHR2'];
+       
 
         $allowedCurrencies = ['MMK', 'IDR', 'IDR2', 'KRW2', 'MMK2', 'VND2', 'LAK2', 'KHR2'];
         $isValidCurrency = in_array($request->currency, $allowedCurrencies);
@@ -69,20 +69,10 @@ class GetBalanceController extends Controller
             if ($user) {
                 $balance = $user->balance; // Using custom wallet balance instead of $user->wallet->balanceFloat
                 if (in_array($request->currency, $specialCurrencies)) {
-                    // Use the same conversion logic as DepositController/WithdrawController
-                    $conversionValue = match ($request->currency) {
-                        'IDR2' => 100,
-                        'KRW2' => 10,
-                        'MMK2' => 1000,
-                        'VND2' => 1000,
-                        'LAK2' => 10,
-                        'KHR2' => 100,
-                        default => 1,
-                    };
-                    $balance = $balance / $conversionValue;
+                    $balance = $balance / 1000; // Apply 1:1000 conversion here
                     $balance = round($balance, 4);
                 } else {
-                    $balance = round($balance, 2); // Match working version - 2 decimal places for regular currencies
+                    $balance = round($balance, 2);
                 }
                 $results[] = [
                     'member_account' => $req['member_account'],
