@@ -25,6 +25,7 @@ use App\Http\Controllers\Admin\TwoD\TwoDigitController;
 use App\Http\Controllers\Admin\WagerListController;
 use App\Http\Controllers\Admin\WinnerTextController;
 use App\Http\Controllers\Admin\WithDrawRequestController;
+use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
 
@@ -260,4 +261,18 @@ Route::group([
     // two digit end
     // shan player report
     Route::get('/shan-player-report', [ShanPlayerReportController::class, 'index'])->name('shan.player.report');
+
+    // System Logs Routes
+    Route::prefix('logs')->name('logs.')->group(function () {
+        Route::get('/', [LogController::class, 'index'])->name('index');
+        Route::get('/custom-transactions', [LogController::class, 'customTransactions'])->name('custom-transactions');
+        Route::get('/webhook-logs', [LogController::class, 'webhookLogs'])->name('webhook-logs');
+        Route::get('/system-logs', [LogController::class, 'systemLogs'])->name('system-logs');
+        Route::get('/user-activities', [LogController::class, 'userActivities'])->name('user-activities');
+        Route::get('/transaction/{id}', [LogController::class, 'showTransaction'])->name('transaction-detail');
+        Route::get('/webhook/{id}', [LogController::class, 'showWebhookLog'])->name('webhook-detail');
+        Route::get('/export-transactions', [LogController::class, 'exportTransactions'])->name('export-transactions');
+        Route::get('/stats', [LogController::class, 'getStats'])->name('stats');
+        Route::post('/clear-old', [LogController::class, 'clearOldLogs'])->name('clear-old');
+    });
 });

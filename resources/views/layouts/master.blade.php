@@ -239,6 +239,54 @@
                         </li>
                         @endcan
 
+                        <!-- System Logs Menu -->
+                        <li class="nav-item {{ str_starts_with(Route::current()->getName(), 'admin.logs') ? 'menu-open' : '' }}">
+                            <a href="#" class="nav-link {{ str_starts_with(Route::current()->getName(), 'admin.logs') ? 'active' : '' }}">
+                                <i class="fas fa-clipboard-list"></i>
+                                <p>
+                                    System Logs
+                                    <i class="fas fa-angle-left right"></i>
+                                </p>
+                            </a>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    <a href="{{ route('admin.logs.index') }}"
+                                        class="nav-link {{ Route::current()->getName() == 'admin.logs.index' ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Logs Dashboard</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('admin.logs.custom-transactions') }}"
+                                        class="nav-link {{ Route::current()->getName() == 'admin.logs.custom-transactions' ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Custom Transactions</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('admin.logs.webhook-logs') }}"
+                                        class="nav-link {{ Route::current()->getName() == 'admin.logs.webhook-logs' ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Webhook Logs</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('admin.logs.system-logs') }}"
+                                        class="nav-link {{ Route::current()->getName() == 'admin.logs.system-logs' ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>System Logs</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('admin.logs.user-activities') }}"
+                                        class="nav-link {{ Route::current()->getName() == 'admin.logs.user-activities' ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>User Activities</p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
                         @can('agent_access')
                             <li class="nav-item">
                                 <a href="{{ route('admin.subacc.index') }}"
