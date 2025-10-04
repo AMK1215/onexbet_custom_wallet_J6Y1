@@ -139,9 +139,10 @@ class WithdrawController extends Controller
                     continue; // Skip to next batch request
                 }
 
-                if (! $user->balance) {
-                    Log::warning('Wallet missing for member during withdraw/bet request', ['member_account' => $memberAccount]);
-                    $responseData[] = $this->buildErrorResponse($memberAccount, $productCode, 0.00, SeamlessWalletCode::MemberNotExist, 'Member wallet missing', $request->currency);
+                // Check if user has a valid balance (can be 0, but should be numeric)
+                if (!is_numeric($user->balance)) {
+                    Log::warning('Invalid balance for member during withdraw/bet request', ['member_account' => $memberAccount, 'balance' => $user->balance]);
+                    $responseData[] = $this->buildErrorResponse($memberAccount, $productCode, 0.00, SeamlessWalletCode::MemberNotExist, 'Invalid user balance', $request->currency);
                     continue; // Skip to next batch request
                 }
 
@@ -270,12 +271,10 @@ class WithdrawController extends Controller
                 try {
                     // Re-fetch user with wallet lock for concurrency safety
                     $user->refresh(); // Refresh user model to get latest balance
-                    $userWithWallet = User::with(['wallet' => function ($query) {
-                        $query->lockForUpdate();
-                    }])->find($user->id);
+                    $userWithWallet = User::where('id', $user->id)->lockForUpdate()->first();
 
-                    if (!$userWithWallet || !$userWithWallet->wallet) {
-                        throw new Exception('User or wallet not found during transaction locking.');
+                    if (!$userWithWallet) {
+                        throw new Exception('User not found during transaction locking.');
                     }
 
                     $beforeTransactionBalance = $userWithWallet->balance;
