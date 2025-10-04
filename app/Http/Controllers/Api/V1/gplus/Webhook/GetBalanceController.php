@@ -75,16 +75,9 @@ class GetBalanceController extends Controller
                     $balance = round($balance, 2);
                 }
                 
-                // Format balance with proper decimal places and ensure it's a float
+                // Format balance with proper decimal places
                 $decimalPlaces = in_array($request->currency, $specialCurrencies) ? 4 : 2;
-                $formattedBalance = (float) round($balance, $decimalPlaces);
-                
-                // Ensure proper decimal places are maintained in JSON
-                if ($decimalPlaces == 2) {
-                    $formattedBalance = (float) sprintf('%.2f', $formattedBalance);
-                } elseif ($decimalPlaces == 4) {
-                    $formattedBalance = (float) sprintf('%.4f', $formattedBalance);
-                }
+                $formattedBalance = round($balance, $decimalPlaces);
                 
                 $results[] = [
                     'member_account' => $req['member_account'],
