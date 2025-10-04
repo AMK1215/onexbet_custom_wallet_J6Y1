@@ -115,7 +115,6 @@ class UsersTableSeeder extends Seeder
             'is_changed_password' => 1,
             'type' => $type->value,
             'referral_code' => $referral_code,
-            'balance' => 0, // Initialize wallet balance
         ]);
     }
 }
