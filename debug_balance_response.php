@@ -32,15 +32,20 @@ if ($user) {
         echo "Converted Balance: " . $balance . PHP_EOL;
         echo "Balance Type: " . gettype($balance) . PHP_EOL;
         
-        // Test JSON serialization
+        // Test JSON serialization with proper float casting
+        $decimalPlaces = in_array($currency, ['IDR2', 'KRW2', 'MMK2', 'VND2', 'LAK2', 'KHR2']) ? 4 : 2;
+        $formattedBalance = (float) round($balance, $decimalPlaces);
+        
         $testResponse = [
             'member_account' => 'PLAYER0101',
             'product_code' => 1006,
-            'balance' => $balance,
+            'balance' => $formattedBalance,
             'code' => 0,
             'message' => 'Success',
         ];
         
+        echo "Formatted Balance: " . $formattedBalance . PHP_EOL;
+        echo "Formatted Type: " . gettype($formattedBalance) . PHP_EOL;
         echo "JSON Response: " . json_encode($testResponse) . PHP_EOL;
     }
     

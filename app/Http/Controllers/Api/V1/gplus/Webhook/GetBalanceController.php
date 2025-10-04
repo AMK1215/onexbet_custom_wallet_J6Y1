@@ -75,9 +75,9 @@ class GetBalanceController extends Controller
                     $balance = round($balance, 2);
                 }
                 
-                // Format balance with proper decimal places
+                // Format balance with proper decimal places and ensure it's a float
                 $decimalPlaces = in_array($request->currency, $specialCurrencies) ? 4 : 2;
-                $formattedBalance = round($balance, $decimalPlaces);
+                $formattedBalance = (float) round($balance, $decimalPlaces);
                 
                 $results[] = [
                     'member_account' => $req['member_account'],
