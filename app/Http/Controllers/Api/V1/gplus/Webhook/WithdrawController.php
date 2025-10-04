@@ -9,7 +9,7 @@ use App\Models\GameList;
 use App\Models\PlaceBet;
 use App\Models\User;
 use App\Services\ApiResponseService;
-use App\Services\WalletService;
+use App\Services\CustomWalletService;
 use App\Models\CustomTransaction;
 use Exception;
 use Illuminate\Database\QueryException;
@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Log;
 
 class WithdrawController extends Controller
 {
-    protected WalletService $walletService;
+    protected CustomWalletService $customWalletService;
 
     /**
      * @var array Allowed currencies for withdraw.
@@ -40,9 +40,9 @@ class WithdrawController extends Controller
     /**
      * WithdrawController constructor.
      */
-    public function __construct(WalletService $walletService)
+    public function __construct(CustomWalletService $customWalletService)
     {
-        $this->walletService = $walletService;
+        $this->customWalletService = $customWalletService;
     }
 
     /**
@@ -350,7 +350,7 @@ class WithdrawController extends Controller
 
                     // Perform the withdrawal through wallet service
                     // Bavix\Wallet's withdraw method will throw InsufficientFunds if the internal balance check fails
-                        $this->walletService->withdraw($userWithWallet, $convertedAmount, TransactionName::Withdraw, $meta);
+                        $this->customWalletService->withdraw($userWithWallet, $convertedAmount, TransactionName::Withdraw, $meta);
                     $newBalance = $userWithWallet->balance;
 
                         $transactionCode = SeamlessWalletCode::Success->value;

@@ -11,7 +11,7 @@ use App\Models\CustomTransaction;
 use App\Models\TransactionLog;
 use App\Models\User;
 use App\Services\ApiResponseService;
-use App\Services\WalletService;
+use App\Services\CustomWalletService;
 use Exception;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
@@ -100,7 +100,7 @@ class DepositController extends Controller
         $isValidCurrency = in_array($request->currency, $this->allowedCurrencies);
 
         $results = [];
-        $walletService = app(WalletService::class);
+        $customWalletService = app(CustomWalletService::class);
         $admin = User::adminUser();
         if (! $admin) {
             throw new Exception('Admin user not configured properly.');
@@ -271,7 +271,7 @@ class DepositController extends Controller
                         //     continue;
                         // }
 
-                        $walletService->deposit($userWithWallet, $convertedAmount, TransactionName::Deposit, [
+                        $customWalletService->deposit($userWithWallet, $convertedAmount, TransactionName::Deposit, [
                             'seamless_transaction_id' => $transactionId,
                             'action' => $action,
                             'wager_code' => $wagerCode,

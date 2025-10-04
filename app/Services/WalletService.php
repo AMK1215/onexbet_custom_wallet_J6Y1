@@ -38,7 +38,7 @@ class WalletService
     {
         return array_merge([
             'name' => $transaction_name,
-            'opening_balance' => $user->balanceFloat,
+            'opening_balance' => $user->balance,
             'target_user_id' => $target_user->id,
         ], $meta);
     }
@@ -47,7 +47,7 @@ class WalletService
     {
         return array_merge([
             'name' => $transaction_name->value,
-            'opening_balance' => $user->balanceFloat,
+            'opening_balance' => $user->balance,
             'target_user_id' => $target_user->id,
         ], $meta);
     }
