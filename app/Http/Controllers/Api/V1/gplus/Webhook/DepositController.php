@@ -276,11 +276,15 @@ class DepositController extends Controller
 
                         $afterTransactionBalance = $userWithWallet->balance;
 
+                        $decimalPlaces = in_array($request->currency, ['IDR2', 'KRW2', 'MMK2', 'VND2', 'LAK2', 'KHR2']) ? 4 : 2;
+                        $beforeBalanceFormatted = number_format(round($beforeTransactionBalance / $this->getCurrencyValue($request->currency), $decimalPlaces), $decimalPlaces, '.', '');
+                        $afterBalanceFormatted = number_format(round($afterTransactionBalance / $this->getCurrencyValue($request->currency), $decimalPlaces), $decimalPlaces, '.', '');
+                        
                         $results[] = [
                             'member_account' => $memberAccount,
                             'product_code' => (int) $productCode,
-                            'before_balance' => round($beforeTransactionBalance / $this->getCurrencyValue($request->currency), 4),
-                            'balance' => round($afterTransactionBalance / $this->getCurrencyValue($request->currency), 4),
+                            'before_balance' => $beforeBalanceFormatted,
+                            'balance' => $afterBalanceFormatted,
                             'code' => SeamlessWalletCode::Success->value,
                             'message' => '',
                         ];
@@ -321,7 +325,8 @@ class DepositController extends Controller
      */
     private function buildErrorResponse(string $memberAccount, string $productCode, float $balance, SeamlessWalletCode $code, string $message, string $currency): array
     {
-        $formattedBalance = round($balance / $this->getCurrencyValue($currency), 4);
+        $decimalPlaces = in_array($currency, ['IDR2', 'KRW2', 'MMK2', 'VND2', 'LAK2', 'KHR2']) ? 4 : 2;
+        $formattedBalance = number_format(round($balance / $this->getCurrencyValue($currency), $decimalPlaces), $decimalPlaces, '.', '');
 
         return [
             'member_account' => $memberAccount,

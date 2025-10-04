@@ -74,10 +74,15 @@ class GetBalanceController extends Controller
                 } else {
                     $balance = round($balance, 2);
                 }
+                
+                // Format balance with proper decimal places
+                $decimalPlaces = in_array($request->currency, $specialCurrencies) ? 4 : 2;
+                $formattedBalance = number_format($balance, $decimalPlaces, '.', '');
+                
                 $results[] = [
                     'member_account' => $req['member_account'],
                     'product_code' => $req['product_code'],
-                    'balance' => (float) $balance,
+                    'balance' => $formattedBalance,
                     'code' => \App\Enums\SeamlessWalletCode::Success->value,
                     'message' => 'Success',
                 ];
