@@ -20,7 +20,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('profile', 2000)->nullable();
-            $table->decimal('balance', 64, 0)->default(0);
+            $table->decimal('balance', 64, 2)->default(0);
             $table->decimal('max_score')->default(0.00);
             $table->integer('status')->default(1);
             $table->integer('is_changed_password')->default(1);
