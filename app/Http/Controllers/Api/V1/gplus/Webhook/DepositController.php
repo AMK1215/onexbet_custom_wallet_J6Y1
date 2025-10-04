@@ -280,6 +280,15 @@ class DepositController extends Controller
                         $beforeBalanceFormatted = (float) round($beforeTransactionBalance / $this->getCurrencyValue($request->currency), $decimalPlaces);
                         $afterBalanceFormatted = (float) round($afterTransactionBalance / $this->getCurrencyValue($request->currency), $decimalPlaces);
                         
+                        // Ensure proper decimal places are maintained in JSON
+                        if ($decimalPlaces == 2) {
+                            $beforeBalanceFormatted = (float) sprintf('%.2f', $beforeBalanceFormatted);
+                            $afterBalanceFormatted = (float) sprintf('%.2f', $afterBalanceFormatted);
+                        } elseif ($decimalPlaces == 4) {
+                            $beforeBalanceFormatted = (float) sprintf('%.4f', $beforeBalanceFormatted);
+                            $afterBalanceFormatted = (float) sprintf('%.4f', $afterBalanceFormatted);
+                        }
+                        
                         $results[] = [
                             'member_account' => $memberAccount,
                             'product_code' => (int) $productCode,
@@ -327,6 +336,13 @@ class DepositController extends Controller
     {
         $decimalPlaces = in_array($currency, ['IDR2', 'KRW2', 'MMK2', 'VND2', 'LAK2', 'KHR2']) ? 4 : 2;
         $formattedBalance = (float) round($balance / $this->getCurrencyValue($currency), $decimalPlaces);
+
+        // Ensure proper decimal places are maintained in JSON
+        if ($decimalPlaces == 2) {
+            $formattedBalance = (float) sprintf('%.2f', $formattedBalance);
+        } elseif ($decimalPlaces == 4) {
+            $formattedBalance = (float) sprintf('%.4f', $formattedBalance);
+        }
 
         return [
             'member_account' => $memberAccount,
