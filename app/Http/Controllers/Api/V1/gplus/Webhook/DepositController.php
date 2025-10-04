@@ -341,12 +341,12 @@ class DepositController extends Controller
     private function getCurrencyValue(string $currency): int
     {
         return match ($currency) {
-            'IDR2' => 100, // Example multiplier
-            'KRW2' => 10,
+            'IDR2' => 1000, // Match GetBalanceController logic
+            'KRW2' => 1000,
             'MMK2' => 1000,
             'VND2' => 1000,
-            'LAK2' => 10,
-            'KHR2' => 100,
+            'LAK2' => 1000,
+            'KHR2' => 1000,
             default => 1,
         };
     }

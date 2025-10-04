@@ -398,12 +398,12 @@ class WithdrawController extends Controller
     {
         // Use a match expression for cleaner currency value mapping
         $divisor = match ($currency) {
-            'IDR2' => 100,
-            'KRW2' => 10,
-            'MMK2' => 1000, // Assuming MMK2 means 1/1000th unit
+            'IDR2' => 1000, // Match GetBalanceController logic
+            'KRW2' => 1000,
+            'MMK2' => 1000,
             'VND2' => 1000,
-            'LAK2' => 10,
-            'KHR2' => 100,
+            'LAK2' => 1000,
+            'KHR2' => 1000,
             default => 1, // Default to 1 for standard currencies
         };
 
@@ -419,12 +419,12 @@ class WithdrawController extends Controller
     private function getCurrencyValue(string $currency): int|float
     {
         return match ($currency) {
-            'IDR2' => 100,
-            'KRW2' => 10,
-            'MMK2' => 1000, // Assuming MMK2 implies external unit * 1000 = internal unit
+            'IDR2' => 1000, // Match GetBalanceController logic
+            'KRW2' => 1000,
+            'MMK2' => 1000,
             'VND2' => 1000,
-            'LAK2' => 10,
-            'KHR2' => 100,
+            'LAK2' => 1000,
+            'KHR2' => 1000,
             default => 1,
         };
     }
