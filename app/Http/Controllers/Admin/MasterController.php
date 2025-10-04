@@ -59,35 +59,11 @@ class MasterController extends Controller
         // );
 //  'children.children.poneWinePlayer'
         $users = User::with(['roles'])->whereHas('roles', fn ($q) => $q->where('role_id', self::MASTER_ROLE))
-            ->select('id', 'name', 'user_name', 'phone', 'status')
+            ->select('id', 'name', 'user_name', 'phone', 'status', 'balance')
             ->where('agent_id', auth()->id())
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        // $reportData = DB::table('users as m')
-        //     ->join('users as a', 'a.agent_id', '=', 'm.id')          // agent
-        //     ->join('users as p', 'p.agent_id', '=', 'a.id')          // player
-        //     ->join('reports', 'reports.member_name', '=', 'p.user_name')
-        //     ->groupBy('m.id')
-        //     ->selectRaw('m.id as master_id,SUM(reports.bet_amount) as total_bet_amount,SUM(reports.payout_amount) as total_payout_amount')
-        //     ->get()
-        //     ->keyBy('master_id');
-
-        // dd($reportData);
-        // $users = $masters->map(function ($master) use ($reportData) {
-        //     $report = $reportData->get($master->id);
-        //     $poneWineTotalAmt = $master->children->flatMap->children->flatMap->poneWinePlayer->sum('win_lose_amt');
-
-        //     return (object) [
-        //         'id' => $master->id,
-        //         'name' => $master->name,
-        //         'user_name' => $master->user_name,
-        //         'phone' => $master->phone,
-        //         'balanceFloat' => $master->balanceFloat,
-        //         'status' => $master->status,
-        //         'win_lose' => (($report->total_payout_amount ?? 0) - ($report->total_bet_amount ?? 0)) + $poneWineTotalAmt,
-        //     ];
-        // });
 
         return view('admin.master.index', compact('users'));
     }
