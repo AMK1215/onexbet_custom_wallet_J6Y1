@@ -84,7 +84,7 @@ class UsersTableSeeder extends Seeder
                         'PLAYER'.Str::random(6)
                     );
                     // Fixed initial balance of 5,000
-                    $playerInitialBalance = 5000;
+                    $playerInitialBalance = 50000;
                     $playerTransferResult = $walletService->transfer($agent, $player, $playerInitialBalance, TransactionName::CreditTransfer);
                 }
             }
