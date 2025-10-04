@@ -79,17 +79,17 @@ class GetBalanceController extends Controller
                 $decimalPlaces = in_array($request->currency, $specialCurrencies) ? 4 : 2;
                 $balanceValue = round($balance, $decimalPlaces);
                 
-                // Format the float value to the correct precision string, then cast back to float.
+                // Format the balance as a string with proper decimal places
                 $formattedBalance = match($decimalPlaces) {
-                    2 => (float) sprintf('%.2f', $balanceValue),
-                    4 => (float) sprintf('%.4f', $balanceValue),
-                    default => (float) $balanceValue,
+                    2 => sprintf('%.2f', $balanceValue),
+                    4 => sprintf('%.4f', $balanceValue),
+                    default => (string) $balanceValue,
                 };
                 
                 $results[] = [
                     'member_account' => $req['member_account'],
                     'product_code' => $req['product_code'],
-                    'balance' => $formattedBalance, // <-- Will be a JSON number (float)
+                    'balance' => $formattedBalance, // <-- Will be a JSON string with decimal places
                     'code' => \App\Enums\SeamlessWalletCode::Success->value,
                     'message' => 'Success',
                 ];

@@ -258,11 +258,11 @@ class WithdrawController extends Controller
                     $decimalPlaces = $this->getDecimalPlaces($request->currency);
                     $formattedBalanceValue = $this->formatBalance($currentBalance, $request->currency);
                     
-                    // Format the float value to the correct precision string, then cast back to float.
+                    // Format the balance as a string with proper decimal places
                     $formattedBalance = match($decimalPlaces) {
-                        2 => (float) sprintf('%.2f', $formattedBalanceValue),
-                        4 => (float) sprintf('%.4f', $formattedBalanceValue),
-                        default => (float) $formattedBalanceValue,
+                        2 => sprintf('%.2f', $formattedBalanceValue),
+                        4 => sprintf('%.4f', $formattedBalanceValue),
+                        default => (string) $formattedBalanceValue,
                     };
                     
                     $responseData[] = [
@@ -339,11 +339,11 @@ class WithdrawController extends Controller
                             $decimalPlaces = $this->getDecimalPlaces($request->currency);
                             $formattedBalanceValue = $this->formatBalance($beforeTransactionBalance, $request->currency);
                             
-                            // Format the float value to the correct precision string, then cast back to float.
+                            // Format the balance as a string with proper decimal places
                             $formattedBalance = match($decimalPlaces) {
-                                2 => (float) sprintf('%.2f', $formattedBalanceValue),
-                                4 => (float) sprintf('%.4f', $formattedBalanceValue),
-                                default => (float) $formattedBalanceValue,
+                                2 => sprintf('%.2f', $formattedBalanceValue),
+                                4 => sprintf('%.4f', $formattedBalanceValue),
+                                default => (string) $formattedBalanceValue,
                             };
                             
                             $responseData[] = [
@@ -373,25 +373,24 @@ class WithdrawController extends Controller
                         $beforeBalanceValue = $this->formatBalance($beforeTransactionBalance, $request->currency);
                         $afterBalanceValue = $this->formatBalance($newBalance, $request->currency);
 
-                        // Format the float values to the correct precision string, then cast back to float.
-                        // This forces PHP to include the decimal point when json_encode runs.
+                        // Format the balance values as strings with proper decimal places
                         $beforeBalanceFormatted = match($decimalPlaces) {
-                            2 => (float) sprintf('%.2f', $beforeBalanceValue),
-                            4 => (float) sprintf('%.4f', $beforeBalanceValue),
-                            default => (float) $beforeBalanceValue,
+                            2 => sprintf('%.2f', $beforeBalanceValue),
+                            4 => sprintf('%.4f', $beforeBalanceValue),
+                            default => (string) $beforeBalanceValue,
                         };
 
                         $afterBalanceFormatted = match($decimalPlaces) {
-                            2 => (float) sprintf('%.2f', $afterBalanceValue),
-                            4 => (float) sprintf('%.4f', $afterBalanceValue),
-                            default => (float) $afterBalanceValue,
+                            2 => sprintf('%.2f', $afterBalanceValue),
+                            4 => sprintf('%.4f', $afterBalanceValue),
+                            default => (string) $afterBalanceValue,
                         };
 
                         $responseData[] = [
                             'member_account' => $memberAccount,
                             'product_code' => (int) $productCode,
-                            'before_balance' => $beforeBalanceFormatted, // <-- Will be a JSON number (float)
-                            'balance' => $afterBalanceFormatted,         // <-- Will be a JSON number (float)
+                            'before_balance' => $beforeBalanceFormatted, // <-- Will be a JSON string with decimal places
+                            'balance' => $afterBalanceFormatted,         // <-- Will be a JSON string with decimal places
                             'code' => $transactionCode,
                             'message' => $transactionMessage,
                             'transaction_id' => $transactionId,
@@ -438,18 +437,18 @@ class WithdrawController extends Controller
         $decimalPlaces = $this->getDecimalPlaces($currency);
         $formattedBalanceValue = $this->formatBalance($balance, $currency); // Use the formatted float value
         
-        // Format the float value to the correct precision string, then cast back to float.
+        // Format the balance as a string with proper decimal places
         $finalBalance = match($decimalPlaces) {
-            2 => (float) sprintf('%.2f', $formattedBalanceValue),
-            4 => (float) sprintf('%.4f', $formattedBalanceValue),
-            default => (float) $formattedBalanceValue,
+            2 => sprintf('%.2f', $formattedBalanceValue),
+            4 => sprintf('%.4f', $formattedBalanceValue),
+            default => (string) $formattedBalanceValue,
         };
         
         return [
             'member_account' => $memberAccount,
             'product_code' => (int) $productCode, // Ensure it's an int
-            'before_balance' => $finalBalance,    // <-- Will be a JSON number (float)
-            'balance' => $finalBalance,          // <-- Will be a JSON number (float)
+            'before_balance' => $finalBalance,    // <-- Will be a JSON string with decimal places
+            'balance' => $finalBalance,          // <-- Will be a JSON string with decimal places
             'code' => $code->value,
             'message' => $message,
         ];
