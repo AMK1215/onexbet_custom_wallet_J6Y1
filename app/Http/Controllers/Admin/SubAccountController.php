@@ -431,12 +431,16 @@ class SubAccountController extends Controller
                 return redirect()->back()->with('error', 'You do not have enough balance to transfer!');
             }
 
-            app(CustomWalletService::class)->transfer($agent, $player, $request->validated('amount'),
+            $transferResult = app(CustomWalletService::class)->transfer($agent, $player, $request->validated('amount'),
                 TransactionName::CreditTransfer, [
-                    'note' => $request->note,
-                    'old_balance' => $player->balance,
-                    'new_balance' => $player->balance + $request->amount,
+                    'note' => $request->note ?? 'TopUp transfer from agent to player',
+                    'sub_agent_name' => $subAgent->user_name,
+                    'agent_name' => $agent->user_name,
                 ]);
+            
+            if (!$transferResult) {
+                throw new \Exception('Transfer failed');
+            }
             // Log the transfer
             TransferLog::create([
                 'from_user_id' => $agent->id,
@@ -501,12 +505,16 @@ class SubAccountController extends Controller
                 return redirect()->back()->with('error', 'You do not have enough balance to transfer!');
             }
 
-            app(CustomWalletService::class)->transfer($player, $agent, $request->validated('amount'),
+            $transferResult = app(CustomWalletService::class)->transfer($player, $agent, $request->validated('amount'),
                 TransactionName::DebitTransfer, [
-                    'note' => $request->note,
-                    'old_balance' => $player->balance,
-                    'new_balance' => $player->balance - $request->amount,
+                    'note' => $request->note ?? 'Transfer from player to agent',
+                    'sub_agent_name' => $subAgent->user_name,
+                    'agent_name' => $agent->user_name,
                 ]);
+            
+            if (!$transferResult) {
+                throw new \Exception('Transfer failed');
+            }
             // Log the transfer
             TransferLog::create([
                 'from_user_id' => $player->id,
@@ -636,11 +644,16 @@ class SubAccountController extends Controller
             $user->roles()->sync(self::PLAYER_ROLE);
 
             if (isset($inputs['amount'])) {
-                app(CustomWalletService::class)->transfer($agent, $user, $inputs['amount'],
+                $transferResult = app(CustomWalletService::class)->transfer($agent, $user, $inputs['amount'],
                     TransactionName::CreditTransfer, [
-                        'old_balance' => $user->balance,
-                        'new_balance' => $user->balance + $request->amount,
+                        'note' => 'Initial Top Up from agent to new player',
+                        'sub_agent_name' => $subAgent->user_name,
+                        'agent_name' => $agent->user_name,
                     ]);
+                
+                if (!$transferResult) {
+                    throw new \Exception('Transfer failed');
+                }
             }
 
             // Log the transfer

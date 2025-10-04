@@ -182,16 +182,20 @@ class AgentController extends Controller
                 DB::beginTransaction();
 
                 // Perform the transfer
-                app(CustomWalletService::class)->transfer(
+                $transferResult = app(CustomWalletService::class)->transfer(
                     $owner,
                     $agent,
                     $transfer_amount,
                     TransactionName::CreditTransfer,
                     [
-                        'old_balance' => $agent->balance,
-                        'new_balance' => $agent->balance + $transfer_amount,
+                        'note' => 'Initial Top Up from Owner to new agent',
+                        'owner_name' => $owner->user_name,
                     ]
                 );
+                
+                if (!$transferResult) {
+                    throw new \Exception('Transfer failed');
+                }
 
                 // Log the transfer
                 TransferLog::create([
@@ -292,17 +296,20 @@ class AgentController extends Controller
                 throw new \Exception('You do not have enough balance to transfer!');
             }
 
-            app(CustomWalletService::class)->transfer(
+            $transferResult = app(CustomWalletService::class)->transfer(
                 $admin,
                 $agent,
                 $request->amount,
                 TransactionName::CreditTransfer,
                 [
-                    'note' => $request->note,
-                    'old_balance' => $agent->balance,
-                    'new_balance' => $agent->balance + $request->amount,
+                    'note' => $request->note ?? 'TopUp from owner to agent',
+                    'admin_name' => $admin->user_name,
                 ]
             );
+            
+            if (!$transferResult) {
+                throw new \Exception('Transfer failed');
+            }
 
             // Create transfer log
             TransferLog::create([
@@ -340,17 +347,20 @@ class AgentController extends Controller
             }
 
             // Transfer money
-            app(CustomWalletService::class)->transfer(
+            $transferResult = app(CustomWalletService::class)->transfer(
                 $agent,
                 $admin,
                 $request->amount,
                 TransactionName::DebitTransfer,
                 [
-                    'note' => $request->note,
-                    'old_balance' => $agent->balance,
-                    'new_balance' => $agent->balance - $request->amount,
+                    'note' => $request->note ?? 'Withdraw from agent to owner',
+                    'admin_name' => $admin->user_name,
                 ]
             );
+            
+            if (!$transferResult) {
+                throw new \Exception('Transfer failed');
+            }
 
             // Create transfer log
             TransferLog::create([

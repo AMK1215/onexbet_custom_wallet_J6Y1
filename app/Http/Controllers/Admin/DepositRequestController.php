@@ -81,12 +81,17 @@ class DepositRequestController extends Controller
 
             if ($request->status == 1) {
                 $old_balance = $player->balance;
-                app(CustomWalletService::class)->transfer($agent, $player, $request->amount,
+                $transferResult = app(CustomWalletService::class)->transfer($agent, $player, $request->amount,
                     TransactionName::TopUp, [
-                        'old_balance' => $old_balance,
-                        'new_balance' => $old_balance + $request->amount,
+                        'note' => 'Deposit request approved',
+                        'approved_by' => $user->user_name,
+                        'deposit_id' => $deposit->id,
                     ]
                 );
+                
+                if (!$transferResult) {
+                    throw new \Exception('Transfer failed');
+                }
                 \App\Models\TransferLog::create([
                     'from_user_id' => $agent->id,
                     'to_user_id' => $player->id,

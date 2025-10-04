@@ -107,11 +107,16 @@ class WithDrawRequestController extends Controller
             $old_balance = $player->balance;
 
             try {
-                app(CustomWalletService::class)->transfer($player, $agent, $request->amount,
+                $transferResult = app(CustomWalletService::class)->transfer($player, $agent, $request->amount,
                     TransactionName::Withdraw, [
-                        'old_balance' => $old_balance,
-                        'new_balance' => $old_balance - $request->amount,
+                        'note' => 'Withdraw request approved',
+                        'approved_by' => $user->user_name,
+                        'withdraw_id' => $withdraw->id,
                     ]);
+                
+                if (!$transferResult) {
+                    throw new \Exception('Transfer failed');
+                }
 
                 Log::info('Wallet transfer completed successfully', [
                     'withdraw_id' => $withdraw->id,
