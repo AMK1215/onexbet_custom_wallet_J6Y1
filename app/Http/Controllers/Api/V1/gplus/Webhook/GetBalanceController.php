@@ -72,7 +72,7 @@ class GetBalanceController extends Controller
                     $balance = $balance / 1000; // Apply 1:1000 conversion here
                     $balance = round($balance, 4);
                 } else {
-                    $balance = round($balance, 2);
+                    $balance = round($balance, 4); // Changed from 2 to 4 decimal places
                 }
                 $results[] = [
                     'member_account' => $req['member_account'],

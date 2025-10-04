@@ -407,7 +407,7 @@ class WithdrawController extends Controller
             default => 1, // Default to 1 for standard currencies
         };
 
-        $precision = in_array($currency, $this->specialCurrencies) ? 4 : 2;
+        $precision = 4; // Always use 4 decimal places as required by gaming provider
 
         return round($balance / $divisor, $precision);
     }
