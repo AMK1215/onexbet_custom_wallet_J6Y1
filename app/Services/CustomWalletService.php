@@ -37,8 +37,29 @@ class CustomWalletService
                 $oldBalance = (float) $lockedUser->balance;
                 $newBalance = $oldBalance + $amount;
 
+                Log::debug('CustomWalletService::deposit - Before update', [
+                    'user_id' => $user->id,
+                    'user_name' => $user->user_name,
+                    'old_balance' => $oldBalance,
+                    'amount' => $amount,
+                    'new_balance' => $newBalance,
+                    'transaction_name' => $transactionName->value
+                ]);
+
                 // Update balance directly in users table
                 $lockedUser->update(['balance' => $newBalance]);
+
+                // Refresh to get updated balance
+                $lockedUser->refresh();
+                $actualNewBalance = (float) $lockedUser->balance;
+
+                Log::debug('CustomWalletService::deposit - After update', [
+                    'user_id' => $user->id,
+                    'user_name' => $user->user_name,
+                    'expected_new_balance' => $newBalance,
+                    'actual_new_balance' => $actualNewBalance,
+                    'update_successful' => $actualNewBalance == $newBalance
+                ]);
 
                 // Log transaction
                 $this->logTransaction($user, $user, $amount, 'deposit', $transactionName, $oldBalance, $newBalance, $meta);
@@ -76,8 +97,29 @@ class CustomWalletService
                 $oldBalance = (float) $lockedUser->balance;
                 $newBalance = $oldBalance - $amount;
 
+                Log::debug('CustomWalletService::withdraw - Before update', [
+                    'user_id' => $user->id,
+                    'user_name' => $user->user_name,
+                    'old_balance' => $oldBalance,
+                    'amount' => $amount,
+                    'new_balance' => $newBalance,
+                    'transaction_name' => $transactionName->value
+                ]);
+
                 // Update balance directly in users table
                 $lockedUser->update(['balance' => $newBalance]);
+
+                // Refresh to get updated balance
+                $lockedUser->refresh();
+                $actualNewBalance = (float) $lockedUser->balance;
+
+                Log::debug('CustomWalletService::withdraw - After update', [
+                    'user_id' => $user->id,
+                    'user_name' => $user->user_name,
+                    'expected_new_balance' => $newBalance,
+                    'actual_new_balance' => $actualNewBalance,
+                    'update_successful' => $actualNewBalance == $newBalance
+                ]);
 
                 // Log transaction
                 $this->logTransaction($user, $user, $amount, 'withdraw', $transactionName, $oldBalance, $newBalance, $meta);
