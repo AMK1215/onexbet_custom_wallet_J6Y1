@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\CustomTransaction;
 use App\Models\PlaceBet;
-use App\Models\TwoDigit\TwoBet;
 use App\Services\CustomWalletService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -71,8 +70,6 @@ class DashboardController extends Controller
             // Game Statistics
             'total_bets_today' => PlaceBet::whereDate('created_at', today())->count(),
             'total_bet_amount_today' => PlaceBet::whereDate('created_at', today())->sum('amount'),
-            'total_two_bets_today' => TwoBet::whereDate('created_at', today())->count(),
-            'total_two_bet_amount_today' => TwoBet::whereDate('created_at', today())->sum('amount'),
             
             // Recent Activity
             'recent_transactions' => CustomTransaction::with(['user', 'targetUser'])
