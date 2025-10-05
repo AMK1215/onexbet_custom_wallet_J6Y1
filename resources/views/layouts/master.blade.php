@@ -114,12 +114,12 @@
             </a>
             <!-- Brand Logo -->
 
-            <!-- <a href="{{ route('home') }}" class="brand-link">
+            {{-- <a href="{{ route('admin.home') }}" class="brand-link">
                 <img src="{{ $adminLogo }}" alt="Admin Logo" class="brand-image img-circle elevation-3"
                     style="opacity: .8">
                 {{-- <span class="brand-text font-weight-light">GoldenJack</span> --}}
                 <span class="brand-text font-weight-light">{{ $siteName }}</span>
-            </a> -->
+            </a> --}}
 
 
             <!-- Sidebar -->
