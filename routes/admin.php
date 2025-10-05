@@ -35,6 +35,9 @@ Route::group([
     'middleware' => ['auth', 'checkBanned'],
 ], function () {
 
+    // Role-based Dashboard
+    Route::get('/', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('home');
+
     Route::post('balance-up', [HomeController::class, 'balanceUp'])->name('balanceUp');
 
     // User logs route - moved after system logs to avoid conflict

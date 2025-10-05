@@ -263,7 +263,7 @@
             <div class="row mb-2">
                 <div class="col-12">
                     <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('admin.home') }}">Home</a></li>
                         <li class="breadcrumb-item active">2D Settings</li>
                     </ol>
                 </div>

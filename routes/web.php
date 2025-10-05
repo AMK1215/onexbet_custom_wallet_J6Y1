@@ -20,18 +20,20 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-require_once __DIR__.'/admin.php';
-
-Auth::routes();
-Route::get('/', [HomeController::class, 'index'])->name('home');
-
-Route::get('/profile', [HomeController::class, 'profile'])->name('profile');
-
-// auth routes
-Route::get('/login', [LoginController::class, 'showLogin'])->name('showLogin');
-Route::post('/login', [LoginController::class, 'login'])->name('login');
+// Auth routes (for admin login)
+Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
+Route::post('/login', [LoginController::class, 'login'])->name('login.post');
 Route::post('logout', [LoginController::class, 'logout'])->name('logout');
+
+// Password change routes
 Route::get('get-change-password', [LoginController::class, 'changePassword'])->name('getChangePassword');
 Route::post('update-password/{user}', [LoginController::class, 'updatePassword'])->name('updatePassword');
+
+// Public routes (for frontend/player access)
+Route::get('/', [HomeController::class, 'index'])->name('public.home');
+Route::get('/profile', [HomeController::class, 'profile'])->name('profile');
+
+// Include admin routes
+require_once __DIR__.'/admin.php';
 Route::get('admin/product/game-list', [\App\Http\Controllers\Admin\ProductController::class, 'GameListFetch'])->name('admin.product.game-list');
 

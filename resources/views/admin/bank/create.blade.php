@@ -8,7 +8,7 @@
                 </div> --}}
                 <div class="col-12">
                     <ol class="breadcrumb  float-right">
-                        <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('admin.home') }}">Home</a></li>
                         <li class="breadcrumb-item active">Create New Bank Account</li>
                     </ol>
                 </div>
