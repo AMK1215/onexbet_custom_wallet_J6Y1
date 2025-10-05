@@ -9,6 +9,6 @@ export default defineConfig({
     react()
     ],
   build: {
-    outDir: 'J6Y1_onexbet_build',
+    outDir: 'w2b1_onexbet_build',
   },
 })
