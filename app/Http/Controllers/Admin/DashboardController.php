@@ -308,9 +308,9 @@ class DashboardController extends Controller
     {
         $data = CustomTransaction::select(
                 DB::raw('DATE(created_at) as date'),
-                DB::raw('SUM(CASE WHEN type = "deposit" THEN amount ELSE 0 END) as deposits'),
-                DB::raw('SUM(CASE WHEN type = "withdraw" THEN amount ELSE 0 END) as withdrawals'),
-                DB::raw('SUM(CASE WHEN type = "transfer" THEN amount ELSE 0 END) as transfers')
+                DB::raw('SUM(CASE WHEN type = \'deposit\' THEN amount ELSE 0 END) as deposits'),
+                DB::raw('SUM(CASE WHEN type = \'withdraw\' THEN amount ELSE 0 END) as withdrawals'),
+                DB::raw('SUM(CASE WHEN type = \'transfer\' THEN amount ELSE 0 END) as transfers')
             )
             ->where('created_at', '>=', Carbon::now()->subDays($days))
             ->groupBy('date')
@@ -362,8 +362,8 @@ class DashboardController extends Controller
     {
         $data = CustomTransaction::select(
                 DB::raw('DATE(created_at) as date'),
-                DB::raw('SUM(CASE WHEN type = "deposit" THEN amount ELSE 0 END) as deposits'),
-                DB::raw('SUM(CASE WHEN type = "withdraw" THEN amount ELSE 0 END) as withdrawals')
+                DB::raw('SUM(CASE WHEN type = \'deposit\' THEN amount ELSE 0 END) as deposits'),
+                DB::raw('SUM(CASE WHEN type = \'withdraw\' THEN amount ELSE 0 END) as withdrawals')
             )
             ->whereHas('user', function($query) use ($masterId) {
                 $query->whereHas('agent', function($q) use ($masterId) {
@@ -408,8 +408,8 @@ class DashboardController extends Controller
     {
         $data = CustomTransaction::select(
                 DB::raw('DATE(created_at) as date'),
-                DB::raw('SUM(CASE WHEN type = "deposit" THEN amount ELSE 0 END) as deposits'),
-                DB::raw('SUM(CASE WHEN type = "withdraw" THEN amount ELSE 0 END) as withdrawals')
+                DB::raw('SUM(CASE WHEN type = \'deposit\' THEN amount ELSE 0 END) as deposits'),
+                DB::raw('SUM(CASE WHEN type = \'withdraw\' THEN amount ELSE 0 END) as withdrawals')
             )
             ->whereHas('user', function($query) use ($agentId) {
                 $query->where('agent_id', $agentId);
@@ -450,8 +450,8 @@ class DashboardController extends Controller
     {
         $data = CustomTransaction::select(
                 DB::raw('DATE(created_at) as date'),
-                DB::raw('SUM(CASE WHEN type = "deposit" THEN amount ELSE 0 END) as deposits'),
-                DB::raw('SUM(CASE WHEN type = "withdraw" THEN amount ELSE 0 END) as withdrawals')
+                DB::raw('SUM(CASE WHEN type = \'deposit\' THEN amount ELSE 0 END) as deposits'),
+                DB::raw('SUM(CASE WHEN type = \'withdraw\' THEN amount ELSE 0 END) as withdrawals')
             )
             ->whereHas('user', function($query) use ($subAgentId) {
                 $query->where('agent_id', $subAgentId);
