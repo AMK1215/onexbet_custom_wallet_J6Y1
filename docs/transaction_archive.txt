@@ -1,0 +1,17 @@
+# Check current status
+php artisan transactions:archive --dry-run
+
+# Archive old transactions manually
+php artisan transactions:archive --months=6 --optimize
+
+
+# Test what would be archived (safe dry run)
+php artisan transactions:archive --dry-run
+
+# Archive transactions older than 6 months
+php artisan transactions:archive --months=6
+
+# Archive and optimize table
+php artisan transactions:archive --months=12 --optimize
+
+

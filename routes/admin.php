@@ -281,4 +281,16 @@ Route::group([
         Route::post('/restore-transactions', [LogController::class, 'restoreTransactions'])->name('restore-transactions');
         Route::get('/deleted-transactions', [LogController::class, 'deletedTransactions'])->name('deleted-transactions');
     });
+
+    // Transaction Archive Management (Owner/Master only)
+    Route::middleware(['permission:manage_transaction_archive'])->prefix('transaction-archive')->name('transaction-archive.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\TransactionArchiveController::class, 'index'])->name('index');
+        Route::get('/stats', [App\Http\Controllers\Admin\TransactionArchiveController::class, 'stats'])->name('stats');
+        Route::post('/archive', [App\Http\Controllers\Admin\TransactionArchiveController::class, 'archive'])->name('archive');
+        Route::post('/dry-run', [App\Http\Controllers\Admin\TransactionArchiveController::class, 'dryRun'])->name('dry-run');
+        Route::post('/optimize', [App\Http\Controllers\Admin\TransactionArchiveController::class, 'optimize'])->name('optimize');
+        Route::get('/archived', [App\Http\Controllers\Admin\TransactionArchiveController::class, 'viewArchived'])->name('view-archived');
+        Route::post('/restore', [App\Http\Controllers\Admin\TransactionArchiveController::class, 'restore'])->name('restore');
+        Route::get('/batch/{batchId}', [App\Http\Controllers\Admin\TransactionArchiveController::class, 'batchDetails'])->name('batch-details');
+    });
 });

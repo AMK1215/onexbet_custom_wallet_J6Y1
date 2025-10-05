@@ -19,6 +19,12 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('wagers:fetch')->everyFiveMinutes();
         $schedule->command('app:clean-up-old-place-bet')->monthlyOn(3, '23:59');
+        
+        // Archive old transactions monthly (SAFE alternative to weekly truncating)
+        $schedule->command('transactions:archive --months=12 --optimize')
+                 ->monthlyOn(1, '02:00')
+                 ->withoutOverlapping()
+                 ->runInBackground();
     }
 
     /**

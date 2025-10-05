@@ -284,6 +284,15 @@
                                         <p>User Activities</p>
                                     </a>
                                 </li>
+                                @can('manage_transaction_archive')
+                                <li class="nav-item">
+                                    <a href="{{ route('admin.transaction-archive.index') }}"
+                                        class="nav-link {{ Route::current()->getName() == 'admin.transaction-archive.index' ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Transaction Archive</p>
+                                    </a>
+                                </li>
+                                @endcan
                             </ul>
                         </li>
 
