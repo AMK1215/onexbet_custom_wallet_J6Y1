@@ -117,7 +117,7 @@ const SidebarLg = ({ show, onClose }) => {
           <div className="flex justify-center gap-4 mt-6 mb-8">
             {contacts && contacts.map((contact, index) => (
               <Link to={contact.link} key={index} onClick={onClose}>
-                <img src={"https://ag.onexbetmm.site/api/../"+contact.image} className="rounded-lg w-12 h-12" alt={contact.name} />
+                <img src={"https://gamestar77.online/api/../"+contact.image} className="rounded-lg w-12 h-12" alt={contact.name} />
               </Link>
             ))}
           </div>

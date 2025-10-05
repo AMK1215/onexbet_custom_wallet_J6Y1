@@ -23,7 +23,7 @@ const Carousels = () => {
         <div className="w-full h-full rounded-3xl bg-[#181A29]">
           {banners && banners.length > 0 ? (
             <img
-              src={"https://ag.onexbetmm.site/api/.." + banners[current].img_url}
+              src={"https://gamestar77.online/api/.." + banners[current].img_url}
               className="w-full h-48 sm:h-64 object-cover object-center transition-all duration-500 rounded-3xl"
               alt={"Banner " + (current + 1)}
             />

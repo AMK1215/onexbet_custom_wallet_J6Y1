@@ -63,7 +63,7 @@ class ShanLaunchGameController extends Controller
         }
 
         // 3. Get player balance (use WalletService if needed)
-        $balance = $player->balanceFloat;
+        $balance = $player->balance;
 
         // 4. Build launch game URL
         $launchGameUrl = sprintf(

@@ -58,9 +58,9 @@ class ShanGetBalanceController extends Controller
                 continue;
             }
 
-            $user = User::with('wallet')->where('user_name', $req['member_account'])->first();
-            if ($user && $user->wallet) {
-                $balance = round($user->wallet->balanceFloat, 2);
+            $user = User::where('user_name', $req['member_account'])->first();
+            if ($user) {
+                $balance = round($user->balance, 2);
                 $results[] = [
                     'member_account' => $req['member_account'],
                     'product_code' => $req['product_code'],

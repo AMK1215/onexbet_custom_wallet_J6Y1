@@ -65,7 +65,7 @@ export default function ProviderList({ typeCode, type }) {
               <div className="relative w-full aspect-square overflow-hidden rounded-2xl bg-gradient-to-br from-yellow-400/70 via-white/10 to-yellow-600/70 p-1 group-hover:from-yellow-400 group-hover:to-orange-400 group-hover:shadow-2xl transition-all duration-200">
                 <div className="w-full h-full bg-black/60 rounded-2xl flex items-center justify-center group-hover:bg-black/80 transition-all duration-200">
                   <img
-                    src={"https://ag.onexbetmm.site/api/.." + item.img_url}
+                    src={"https://gamestar77.online/api/.." + item.img_url}
                     alt={item.product_name}
                     className="w-full h-full object-cover rounded-2xl group-hover:scale-105 transition-transform duration-200"
                   />

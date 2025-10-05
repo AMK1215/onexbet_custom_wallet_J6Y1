@@ -134,6 +134,12 @@
                         <div class="mt-3">
                             <span class="badge badge-primary">Real-time</span>
                             <span class="badge badge-success">Filtered</span>
+                            <span class="badge badge-warning">Soft Delete</span>
+                        </div>
+                        <div class="mt-2">
+                            <a href="{{ route('admin.logs.deleted-transactions') }}" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-history"></i> View Deleted
+                            </a>
                         </div>
                     </div>
                 </div>

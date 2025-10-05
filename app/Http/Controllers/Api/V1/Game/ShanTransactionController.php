@@ -92,12 +92,12 @@ class ShanTransactionController extends Controller
 
                 // Add to results
                 $processedPlayers[] = array_merge($playerData, [
-                    'current_balance' => $player->balanceFloat,
+                    'current_balance' => $player->balance,
                 ]);
 
                 $results[] = [
                     'player_id' => $player->user_name,
-                    'balance' => $player->balanceFloat,
+                    'balance' => $player->balance,
                 ];
             }
 
@@ -114,7 +114,7 @@ class ShanTransactionController extends Controller
             $banker->refresh();
             $results[] = [
                 'player_id' => $banker->user_name,
-                'balance' => $banker->balanceFloat,
+                'balance' => $banker->balance,
             ];
 
             DB::commit();
@@ -128,7 +128,7 @@ class ShanTransactionController extends Controller
                 'players' => $processedPlayers,
                 'banker' => [
                     'player_id' => $banker->user_name,
-                    'balance' => $banker->balanceFloat,
+                    'balance' => $banker->balance,
                 ],
             ], 'Transaction Successful');
 

@@ -275,5 +275,10 @@ Route::group([
         Route::get('/export-transactions', [LogController::class, 'exportTransactions'])->name('export-transactions');
         Route::get('/stats', [LogController::class, 'getStats'])->name('stats');
         Route::post('/clear-old', [LogController::class, 'clearOldLogs'])->name('clear-old');
+        
+        // Soft delete functionality for transactions
+        Route::post('/soft-delete-transactions', [LogController::class, 'softDeleteTransactions'])->name('soft-delete-transactions');
+        Route::post('/restore-transactions', [LogController::class, 'restoreTransactions'])->name('restore-transactions');
+        Route::get('/deleted-transactions', [LogController::class, 'deletedTransactions'])->name('deleted-transactions');
     });
 });

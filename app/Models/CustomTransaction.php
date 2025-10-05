@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CustomTransaction extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'user_id',
@@ -20,8 +21,11 @@ class CustomTransaction extends Model
         'meta',
         'uuid',
         'confirmed',
+        'deleted_by',
+        'deleted_reason',
         'created_at',
-        'updated_at'
+        'updated_at',
+        'deleted_at'
     ];
 
     protected $casts = [
@@ -31,7 +35,8 @@ class CustomTransaction extends Model
         'meta' => 'json',
         'confirmed' => 'boolean',
         'created_at' => 'datetime',
-        'updated_at' => 'datetime'
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime'
     ];
 
     /**
@@ -104,5 +109,53 @@ class CustomTransaction extends Model
     public function scopeTransfers($query)
     {
         return $query->where('type', 'transfer');
+    }
+
+    /**
+     * Scope for active (non-deleted) transactions
+     */
+    public function scopeActive($query)
+    {
+        return $query->whereNull('deleted_at');
+    }
+
+    /**
+     * Scope for deleted transactions
+     */
+    public function scopeDeleted($query)
+    {
+        return $query->whereNotNull('deleted_at');
+    }
+
+    /**
+     * Get the admin who deleted this transaction
+     */
+    public function deletedBy()
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
+    }
+
+    /**
+     * Soft delete transaction with audit trail
+     */
+    public function softDelete($deletedBy, $reason = '')
+    {
+        $this->update([
+            'deleted_at' => now(),
+            'deleted_by' => $deletedBy->id,
+            'deleted_reason' => $reason
+        ]);
+    }
+
+    /**
+     * Restore soft deleted transaction
+     */
+    public function restore()
+    {
+        $this->update([
+            'deleted_at' => null,
+            'deleted_by' => null,
+            'deleted_reason' => null
+        ]);
     }
 }

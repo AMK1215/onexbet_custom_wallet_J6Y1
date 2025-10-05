@@ -34,7 +34,7 @@ const AuthContextProvider = ({ children }) => {
     useEffect(() => {
         if (token) {
             const interval = setInterval(() => {
-                fetch('https://ag.onexbetmm.site/api/user', {
+                fetch('https://gamestar77.online/api/user', {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Accept': 'application/json',

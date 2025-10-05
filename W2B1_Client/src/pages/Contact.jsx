@@ -152,7 +152,7 @@ const ContactPage = () => {
                   <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     {getContactIcon(item.name) || (
                       <img 
-                        src={"https://ag.onexbetmm.site/api/.."+item.image} 
+                        src={"https://gamestar77.online/api/.."+item.image} 
                         className='w-8 h-8 object-contain' 
                         alt={item.name}
                       />

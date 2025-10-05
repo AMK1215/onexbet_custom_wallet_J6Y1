@@ -1,6 +1,6 @@
 @extends('layouts.master')
 
-@section('title', 'Custom Wallet Transactions')
+@section('title', 'Deleted Custom Wallet Transactions')
 
 @section('style')
 <style>
@@ -34,6 +34,13 @@
         text-overflow: ellipsis;
         white-space: nowrap;
     }
+    .deleted-info {
+        background-color: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 5px;
+        padding: 10px;
+        margin-bottom: 15px;
+    }
 </style>
 @endsection
 
@@ -42,13 +49,14 @@
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1 class="m-0">Custom Wallet Transactions</h1>
+                <h1 class="m-0">Deleted Custom Wallet Transactions</h1>
             </div>
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
                     <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('admin.logs.index') }}">System Logs</a></li>
-                    <li class="breadcrumb-item active">Custom Transactions</li>
+                    <li class="breadcrumb-item"><a href="{{ route('admin.logs.custom-transactions') }}">Custom Transactions</a></li>
+                    <li class="breadcrumb-item active">Deleted Transactions</li>
                 </ol>
             </div>
         </div>
@@ -57,6 +65,13 @@
 
 <section class="content">
     <div class="container-fluid">
+        <!-- Info Alert -->
+        <div class="deleted-info">
+            <i class="fas fa-info-circle"></i>
+            <strong>Note:</strong> These transactions have been soft deleted and are hidden from the main transaction view. 
+            They can be restored if needed. <strong>User balances were not affected by the deletion.</strong>
+        </div>
+
         <!-- Filters -->
         <div class="card filter-card mb-4">
             <div class="card-header">
@@ -70,7 +85,7 @@
                 </div>
             </div>
             <div class="card-body">
-                <form method="GET" action="{{ route('admin.logs.custom-transactions') }}">
+                <form method="GET" action="{{ route('admin.logs.deleted-transactions') }}">
                     <div class="row">
                         <div class="col-md-3">
                             <div class="form-group">
@@ -98,14 +113,14 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <div class="form-group">
-                                <label>Transaction Name</label>
-                                <select name="transaction_name" class="form-control">
-                                    <option value="">All Names</option>
-                                    @foreach($transactionNames as $name)
-                                        <option value="{{ $name }}" {{ request('transaction_name') == $name ? 'selected' : '' }}>
-                                            {{ $name }}
+                                <label>Deleted By</label>
+                                <select name="deleted_by" class="form-control">
+                                    <option value="">All Admins</option>
+                                    @foreach($admins as $admin)
+                                        <option value="{{ $admin->id }}" {{ request('deleted_by') == $admin->id ? 'selected' : '' }}>
+                                            {{ $admin->user_name }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -113,43 +128,23 @@
                         </div>
                         <div class="col-md-2">
                             <div class="form-group">
-                                <label>Date From</label>
+                                <label>Deleted From</label>
                                 <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}">
                             </div>
                         </div>
                         <div class="col-md-2">
                             <div class="form-group">
-                                <label>Date To</label>
+                                <label>Deleted To</label>
                                 <input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}">
                             </div>
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label>Min Amount</label>
-                                <input type="number" name="amount_min" class="form-control" value="{{ request('amount_min') }}" step="0.01">
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label>Max Amount</label>
-                                <input type="number" name="amount_max" class="form-control" value="{{ request('amount_max') }}" step="0.01">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
+                        <div class="col-md-1">
                             <div class="form-group">
                                 <label>&nbsp;</label>
                                 <div>
                                     <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-search"></i> Apply Filters
+                                        <i class="fas fa-search"></i> Apply
                                     </button>
-                                    <a href="{{ route('admin.logs.custom-transactions') }}" class="btn btn-secondary">
-                                        <i class="fas fa-times"></i> Clear Filters
-                                    </a>
-                                    <a href="{{ route('admin.logs.export-transactions') }}?{{ http_build_query(request()->query()) }}" class="btn btn-success">
-                                        <i class="fas fa-download"></i> Export CSV
-                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -158,19 +153,19 @@
             </div>
         </div>
 
-        <!-- Transactions Table -->
+        <!-- Deleted Transactions Table -->
         <div class="card">
             <div class="card-header">
                 <h3 class="card-title">
-                    <i class="fas fa-list"></i> Transactions ({{ $transactions->total() }} total)
+                    <i class="fas fa-trash"></i> Deleted Transactions ({{ $transactions->total() }} total)
                 </h3>
                 <div class="card-tools">
                     <span class="badge badge-info">{{ $transactions->count() }} shown</span>
-                    <button type="button" class="btn btn-sm btn-warning ml-2" id="bulkDeleteBtn" disabled>
-                        <i class="fas fa-trash"></i> Delete Selected
+                    <button type="button" class="btn btn-sm btn-success ml-2" id="bulkRestoreBtn" disabled>
+                        <i class="fas fa-undo"></i> Restore Selected
                     </button>
-                    <a href="{{ route('admin.logs.deleted-transactions') }}" class="btn btn-sm btn-secondary ml-2">
-                        <i class="fas fa-history"></i> View Deleted
+                    <a href="{{ route('admin.logs.custom-transactions') }}" class="btn btn-sm btn-primary ml-2">
+                        <i class="fas fa-arrow-left"></i> Back to Active
                     </a>
                 </div>
             </div>
@@ -191,8 +186,9 @@
                                     <th>Transaction Name</th>
                                     <th>Old Balance</th>
                                     <th>New Balance</th>
-                                    <th>Meta</th>
-                                    <th>Date</th>
+                                    <th>Deleted By</th>
+                                    <th>Deleted Reason</th>
+                                    <th>Deleted At</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -201,8 +197,7 @@
                                     <tr>
                                         <td>
                                             <input type="checkbox" class="form-check-input transaction-checkbox" 
-                                                   value="{{ $transaction->id }}" data-amount="{{ $transaction->amount }}"
-                                                   data-type="{{ $transaction->type }}" data-user="{{ $transaction->user->user_name ?? 'N/A' }}">
+                                                   value="{{ $transaction->id }}">
                                         </td>
                                         <td>{{ $transaction->id }}</td>
                                         <td>
@@ -233,19 +228,21 @@
                                         <td>{{ number_format($transaction->old_balance, 2) }}</td>
                                         <td>{{ number_format($transaction->new_balance, 2) }}</td>
                                         <td>
-                                            @if($transaction->meta)
-                                                <div class="meta-data" title="{{ json_encode($transaction->meta, JSON_PRETTY_PRINT) }}">
-                                                    {{ json_encode($transaction->meta) }}
-                                                </div>
-                                            @else
-                                                <span class="text-muted">-</span>
-                                            @endif
+                                            <strong>{{ $transaction->deletedBy->user_name ?? 'System' }}</strong>
+                                            <br><small class="text-muted">{{ $transaction->deleted_at->format('M d, Y H:i') }}</small>
                                         </td>
                                         <td>
-                                            <small>{{ $transaction->created_at->format('M d, Y') }}</small>
-                                            <br><small class="text-muted">{{ $transaction->created_at->format('H:i:s') }}</small>
+                                            <small class="text-muted">{{ Str::limit($transaction->deleted_reason, 50) }}</small>
                                         </td>
                                         <td>
+                                            <small>{{ $transaction->deleted_at->format('M d, Y') }}</small>
+                                            <br><small class="text-muted">{{ $transaction->deleted_at->format('H:i:s') }}</small>
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-sm btn-success restore-btn" 
+                                                    data-id="{{ $transaction->id }}" title="Restore Transaction">
+                                                <i class="fas fa-undo"></i>
+                                            </button>
                                             <a href="{{ route('admin.logs.transaction-detail', $transaction->id) }}" 
                                                class="btn btn-sm btn-info" title="View Details">
                                                 <i class="fas fa-eye"></i>
@@ -269,8 +266,8 @@
                     </div>
                 @else
                     <div class="text-center py-4">
-                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">No transactions found</h5>
+                        <i class="fas fa-trash fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No deleted transactions found</h5>
                         <p class="text-muted">Try adjusting your filters or check back later.</p>
                     </div>
                 @endif
@@ -279,46 +276,33 @@
     </div>
 </section>
 
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
+<!-- Restore Confirmation Modal -->
+<div class="modal fade" id="restoreModal" tabindex="-1" role="dialog" aria-labelledby="restoreModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <div class="modal-header bg-warning">
-                <h5 class="modal-title" id="deleteModalLabel">
-                    <i class="fas fa-exclamation-triangle"></i> Confirm Soft Delete
+            <div class="modal-header bg-success">
+                <h5 class="modal-title" id="restoreModalLabel">
+                    <i class="fas fa-undo"></i> Confirm Restore
                 </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                <div class="alert alert-warning">
+                <div class="alert alert-info">
                     <i class="fas fa-info-circle"></i>
-                    <strong>Important:</strong> This will soft delete the selected transactions. 
-                    They will be hidden from the main view but can be restored later. 
+                    <strong>Note:</strong> This will restore the selected transactions back to the active transaction list.
                     <strong>User balances will NOT be affected.</strong>
                 </div>
                 
-                <div id="selectedTransactionsInfo">
+                <div id="restoreTransactionsInfo">
                     <!-- Selected transactions will be displayed here -->
-                </div>
-                
-                <div class="form-group">
-                    <label for="deleteReason" class="font-weight-bold">Reason for deletion <span class="text-danger">*</span></label>
-                    <textarea class="form-control" id="deleteReason" rows="3" 
-                              placeholder="Please provide a reason for deleting these transactions..." required></textarea>
-                    <small class="form-text text-muted">This reason will be logged for audit purposes.</small>
-                </div>
-                
-                <div id="balanceWarnings" class="alert alert-danger" style="display: none;">
-                    <h6><i class="fas fa-exclamation-triangle"></i> Balance Discrepancy Warnings:</h6>
-                    <div id="warningList"></div>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-warning" id="confirmDeleteBtn">
-                    <i class="fas fa-trash"></i> Soft Delete Transactions
+                <button type="button" class="btn btn-success" id="confirmRestoreBtn">
+                    <i class="fas fa-undo"></i> Restore Transactions
                 </button>
             </div>
         </div>
@@ -335,25 +319,20 @@ $(document).ready(function() {
         allowClear: true
     });
 
-    // Auto-submit form on filter change
-    $('select[name="type"], select[name="transaction_name"]').on('change', function() {
-        $(this).closest('form').submit();
-    });
-
     // Checkbox functionality
     $('#selectAll').on('change', function() {
         $('.transaction-checkbox').prop('checked', this.checked);
-        updateDeleteButton();
+        updateRestoreButton();
     });
 
     $('.transaction-checkbox').on('change', function() {
-        updateDeleteButton();
+        updateRestoreButton();
         updateSelectAllCheckbox();
     });
 
-    function updateDeleteButton() {
+    function updateRestoreButton() {
         const checkedBoxes = $('.transaction-checkbox:checked');
-        $('#bulkDeleteBtn').prop('disabled', checkedBoxes.length === 0);
+        $('#bulkRestoreBtn').prop('disabled', checkedBoxes.length === 0);
     }
 
     function updateSelectAllCheckbox() {
@@ -362,44 +341,40 @@ $(document).ready(function() {
         $('#selectAll').prop('checked', totalCheckboxes === checkedCheckboxes);
     }
 
-    // Bulk delete functionality
-    $('#bulkDeleteBtn').on('click', function() {
+    // Bulk restore functionality
+    $('#bulkRestoreBtn').on('click', function() {
         const selectedTransactions = $('.transaction-checkbox:checked');
         if (selectedTransactions.length === 0) {
-            alert('Please select at least one transaction to delete.');
+            alert('Please select at least one transaction to restore.');
             return;
         }
 
         // Display selected transactions info
-        let infoHtml = '<h6>Selected Transactions:</h6><ul class="list-unstyled">';
+        let infoHtml = '<h6>Selected Transactions to Restore:</h6><ul class="list-unstyled">';
         selectedTransactions.each(function() {
-            const $this = $(this);
-            infoHtml += `<li>
-                <strong>ID:</strong> ${$this.val()}, 
-                <strong>User:</strong> ${$this.data('user')}, 
-                <strong>Amount:</strong> ${$this.data('amount')}, 
-                <strong>Type:</strong> ${$this.data('type')}
-            </li>`;
+            const $row = $(this).closest('tr');
+            const id = $row.find('td:eq(1)').text();
+            const user = $row.find('td:eq(2) strong').text();
+            const amount = $row.find('td:eq(4) span').text();
+            const type = $row.find('td:eq(5) span').text();
+            infoHtml += `<li><strong>ID:</strong> ${id}, <strong>User:</strong> ${user}, <strong>Amount:</strong> ${amount}, <strong>Type:</strong> ${type}</li>`;
         });
         infoHtml += '</ul>';
-        $('#selectedTransactionsInfo').html(infoHtml);
-
-        // Clear previous warnings and reason
-        $('#balanceWarnings').hide();
-        $('#deleteReason').val('');
+        $('#restoreTransactionsInfo').html(infoHtml);
         
-        $('#deleteModal').modal('show');
+        $('#restoreModal').modal('show');
     });
 
-    // Confirm delete
-    $('#confirmDeleteBtn').on('click', function() {
-        const reason = $('#deleteReason').val().trim();
-        if (!reason) {
-            alert('Please provide a reason for deletion.');
-            $('#deleteReason').focus();
-            return;
+    // Individual restore buttons
+    $('.restore-btn').on('click', function() {
+        const transactionId = $(this).data('id');
+        if (confirm('Are you sure you want to restore this transaction?')) {
+            restoreTransaction([transactionId]);
         }
+    });
 
+    // Confirm bulk restore
+    $('#confirmRestoreBtn').on('click', function() {
         const selectedIds = $('.transaction-checkbox:checked').map(function() {
             return $(this).val();
         }).get();
@@ -409,53 +384,45 @@ $(document).ready(function() {
             return;
         }
 
+        restoreTransaction(selectedIds);
+    });
+
+    function restoreTransaction(transactionIds) {
         // Show loading state
-        const $btn = $(this);
+        const $btn = $('#confirmRestoreBtn');
         const originalText = $btn.html();
-        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Deleting...');
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Restoring...');
 
         // Send AJAX request
         $.ajax({
-            url: '{{ route("admin.logs.soft-delete-transactions") }}',
+            url: '{{ route("admin.logs.restore-transactions") }}',
             method: 'POST',
             data: {
-                transaction_ids: selectedIds,
-                reason: reason,
+                transaction_ids: transactionIds,
                 _token: '{{ csrf_token() }}'
             },
             success: function(response) {
                 if (response.success) {
                     // Show success message
-                    toastr.success(response.message);
+                    if (typeof toastr !== 'undefined') {
+                        toastr.success(response.message);
+                    } else {
+                        alert(response.message);
+                    }
                     
                     // Hide modal
-                    $('#deleteModal').modal('hide');
-                    
-                    // Show balance warnings if any
-                    if (response.balance_warnings && response.balance_warnings.length > 0) {
-                        let warningHtml = '<ul class="mb-0">';
-                        response.balance_warnings.forEach(function(warning) {
-                            warningHtml += `<li>
-                                Transaction ID ${warning.transaction_id} (${warning.user}): 
-                                Current: ${warning.current_balance}, Expected: ${warning.expected_balance}, 
-                                Difference: ${warning.difference}
-                            </li>`;
-                        });
-                        warningHtml += '</ul>';
-                        $('#warningList').html(warningHtml);
-                        $('#balanceWarnings').show();
-                    }
+                    $('#restoreModal').modal('hide');
                     
                     // Reload page after short delay
                     setTimeout(function() {
                         location.reload();
-                    }, 2000);
+                    }, 1500);
                 } else {
                     alert('Error: ' + response.message);
                 }
             },
             error: function(xhr) {
-                let errorMessage = 'An error occurred while deleting transactions.';
+                let errorMessage = 'An error occurred while restoring transactions.';
                 if (xhr.responseJSON && xhr.responseJSON.message) {
                     errorMessage = xhr.responseJSON.message;
                 }
@@ -466,7 +433,7 @@ $(document).ready(function() {
                 $btn.prop('disabled', false).html(originalText);
             }
         });
-    });
+    }
 
     // Initialize toastr for notifications
     if (typeof toastr !== 'undefined') {

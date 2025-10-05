@@ -36,6 +36,7 @@ class LogController extends Controller
     public function customTransactions(Request $request)
     {
         $query = CustomTransaction::with(['user', 'targetUser'])
+            ->active() // Only show active (non-deleted) transactions
             ->orderBy('created_at', 'desc');
 
         // Apply filters
@@ -71,8 +72,8 @@ class LogController extends Controller
 
         // Get filter options
         $users = User::whereIn('type', ['Player', 'Agent', 'Master'])->get();
-        $transactionTypes = CustomTransaction::distinct()->pluck('type');
-        $transactionNames = CustomTransaction::distinct()->pluck('transaction_name');
+        $transactionTypes = CustomTransaction::active()->distinct()->pluck('type');
+        $transactionNames = CustomTransaction::active()->distinct()->pluck('transaction_name');
 
         return view('admin.logs.custom_transactions', compact(
             'transactions', 
@@ -377,5 +378,170 @@ class LogController extends Controller
             'deleted_webhook_logs' => $deletedWebhookLogs,
             'deleted_user_logs' => $deletedUserLogs
         ]);
+    }
+
+    /**
+     * Soft delete multiple transactions with balance verification
+     */
+    public function softDeleteTransactions(Request $request)
+    {
+        $request->validate([
+            'transaction_ids' => 'required|array',
+            'transaction_ids.*' => 'integer|exists:custom_transactions,id',
+            'reason' => 'required|string|max:500'
+        ]);
+
+        $transactionIds = $request->transaction_ids;
+        $reason = $request->reason;
+        $deletedBy = auth()->user();
+
+        // Get transactions with balance verification
+        $transactions = CustomTransaction::active()
+            ->with(['user', 'targetUser'])
+            ->whereIn('id', $transactionIds)
+            ->get();
+
+        if ($transactions->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No valid transactions found for deletion'
+            ], 400);
+        }
+
+        // Balance verification warning
+        $balanceWarnings = [];
+        foreach ($transactions as $transaction) {
+            if ($transaction->type === 'deposit' || $transaction->type === 'withdraw') {
+                $currentBalance = $transaction->user->balance;
+                $expectedBalance = $transaction->new_balance;
+                
+                if (abs($currentBalance - $expectedBalance) > 0.01) {
+                    $balanceWarnings[] = [
+                        'transaction_id' => $transaction->id,
+                        'user' => $transaction->user->user_name,
+                        'current_balance' => $currentBalance,
+                        'expected_balance' => $expectedBalance,
+                        'difference' => $currentBalance - $expectedBalance
+                    ];
+                }
+            }
+        }
+
+        // Soft delete transactions
+        $deletedCount = 0;
+        foreach ($transactions as $transaction) {
+            $transaction->softDelete($deletedBy, $reason);
+            $deletedCount++;
+        }
+
+        // Log the deletion action
+        Log::warning('CustomTransaction soft delete', [
+            'deleted_by' => $deletedBy->id,
+            'deleted_by_name' => $deletedBy->user_name,
+            'transaction_ids' => $transactionIds,
+            'reason' => $reason,
+            'deleted_count' => $deletedCount,
+            'balance_warnings' => $balanceWarnings
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Successfully soft deleted {$deletedCount} transactions",
+            'deleted_count' => $deletedCount,
+            'balance_warnings' => $balanceWarnings
+        ]);
+    }
+
+    /**
+     * Restore soft deleted transactions
+     */
+    public function restoreTransactions(Request $request)
+    {
+        $request->validate([
+            'transaction_ids' => 'required|array',
+            'transaction_ids.*' => 'integer|exists:custom_transactions,id'
+        ]);
+
+        $transactionIds = $request->transaction_ids;
+        $restoredBy = auth()->user();
+
+        // Get soft deleted transactions
+        $transactions = CustomTransaction::onlyTrashed()
+            ->with(['user', 'targetUser'])
+            ->whereIn('id', $transactionIds)
+            ->get();
+
+        if ($transactions->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No deleted transactions found for restoration'
+            ], 400);
+        }
+
+        // Restore transactions
+        $restoredCount = 0;
+        foreach ($transactions as $transaction) {
+            $transaction->restore();
+            $restoredCount++;
+        }
+
+        // Log the restoration action
+        Log::info('CustomTransaction restore', [
+            'restored_by' => $restoredBy->id,
+            'restored_by_name' => $restoredBy->user_name,
+            'transaction_ids' => $transactionIds,
+            'restored_count' => $restoredCount
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Successfully restored {$restoredCount} transactions",
+            'restored_count' => $restoredCount
+        ]);
+    }
+
+    /**
+     * View soft deleted transactions
+     */
+    public function deletedTransactions(Request $request)
+    {
+        $query = CustomTransaction::onlyTrashed()
+            ->with(['user', 'targetUser', 'deletedBy'])
+            ->orderBy('deleted_at', 'desc');
+
+        // Apply filters
+        if ($request->filled('user_id')) {
+            $query->where('user_id', $request->user_id);
+        }
+
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+
+        if ($request->filled('deleted_by')) {
+            $query->where('deleted_by', $request->deleted_by);
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('deleted_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('deleted_at', '<=', $request->date_to);
+        }
+
+        $transactions = $query->paginate(50);
+
+        // Get filter options
+        $users = User::whereIn('type', ['Player', 'Agent', 'Master'])->get();
+        $transactionTypes = CustomTransaction::onlyTrashed()->distinct()->pluck('type');
+        $admins = User::whereIn('type', ['Owner', 'Master'])->get();
+
+        return view('admin.logs.deleted_transactions', compact(
+            'transactions', 
+            'users', 
+            'transactionTypes', 
+            'admins'
+        ));
     }
 }
