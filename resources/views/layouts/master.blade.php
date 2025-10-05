@@ -292,6 +292,13 @@
                                         <p>Transaction Archive</p>
                                     </a>
                                 </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('admin.game-log-cleanup.index') }}"
+                                        class="nav-link {{ Route::current()->getName() == 'admin.game-log-cleanup.index' ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>GameLogCleanup</p>
+                                    </a>
+                                </li>
                                 @endif
                             </ul>
                         </li>

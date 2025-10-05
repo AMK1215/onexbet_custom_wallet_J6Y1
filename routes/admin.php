@@ -293,4 +293,14 @@ Route::group([
         Route::post('/restore', [App\Http\Controllers\Admin\TransactionArchiveController::class, 'restore'])->name('restore');
         Route::get('/batch/{batchId}', [App\Http\Controllers\Admin\TransactionArchiveController::class, 'batchDetails'])->name('batch-details');
     });
+
+    // Game Log Cleanup Management (Owner/SystemWallet only)
+    Route::middleware(['auth'])->prefix('game-log-cleanup')->name('game-log-cleanup.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\GameLogCleanupController::class, 'index'])->name('index');
+        Route::get('/stats', [App\Http\Controllers\Admin\GameLogCleanupController::class, 'stats'])->name('stats');
+        Route::post('/cleanup', [App\Http\Controllers\Admin\GameLogCleanupController::class, 'cleanup'])->name('cleanup');
+        Route::post('/preview', [App\Http\Controllers\Admin\GameLogCleanupController::class, 'preview'])->name('preview');
+        Route::post('/optimize', [App\Http\Controllers\Admin\GameLogCleanupController::class, 'optimize'])->name('optimize');
+        Route::get('/recent', [App\Http\Controllers\Admin\GameLogCleanupController::class, 'recentCleanups'])->name('recent');
+    });
 });

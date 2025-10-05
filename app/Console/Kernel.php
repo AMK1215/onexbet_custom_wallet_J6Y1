@@ -25,6 +25,12 @@ class Kernel extends ConsoleKernel
                  ->monthlyOn(1, '02:00')
                  ->withoutOverlapping()
                  ->runInBackground();
+        
+        // Clean up old game logs daily
+        $schedule->command('game-logs:cleanup --days=15 --optimize')
+                 ->dailyAt('03:00')
+                 ->withoutOverlapping()
+                 ->runInBackground();
     }
 
     /**
