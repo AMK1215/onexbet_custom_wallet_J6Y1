@@ -14,6 +14,13 @@ class TransactionArchiveController extends Controller
     public function __construct(TransactionArchiveService $archiveService)
     {
         $this->archiveService = $archiveService;
+        $this->middleware(function ($request, $next) {
+            $userType = auth()->user()->type;
+            if (!in_array($userType, [10, 50])) { // Owner = 10, SystemWallet = 50
+                abort(403, 'Access denied. Only Owner and SystemWallet roles can access transaction archive.');
+            }
+            return $next($request);
+        });
     }
 
     /**

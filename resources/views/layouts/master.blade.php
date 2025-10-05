@@ -284,7 +284,7 @@
                                         <p>User Activities</p>
                                     </a>
                                 </li>
-                                @can('manage_transaction_archive')
+                                @if(auth()->user()->type == 10 || auth()->user()->type == 50)
                                 <li class="nav-item">
                                     <a href="{{ route('admin.transaction-archive.index') }}"
                                         class="nav-link {{ Route::current()->getName() == 'admin.transaction-archive.index' ? 'active' : '' }}">
@@ -292,7 +292,7 @@
                                         <p>Transaction Archive</p>
                                     </a>
                                 </li>
-                                @endcan
+                                @endif
                             </ul>
                         </li>
 

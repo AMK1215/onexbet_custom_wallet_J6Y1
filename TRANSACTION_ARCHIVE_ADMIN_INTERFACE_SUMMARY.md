@@ -48,7 +48,7 @@ Route::prefix('transaction-archive')->name('transaction-archive.')->group(functi
 
 #### **5. ✅ Admin Navigation Integration**
 - **✅ Added to System Logs menu**
-- **✅ Permission-protected (Owner/Master only)**
+- **✅ Role-protected (Owner/SystemWallet only)**
 - **✅ Proper navigation highlighting**
 
 ### 🎯 **Admin Interface Features:**
@@ -93,9 +93,9 @@ Admin Panel → System Logs → Transaction Archive
 https://gamestar77.online/admin/transaction-archive
 ```
 
-#### **3. ✅ Required Permission:**
+#### **3. ✅ Required Role:**
 ```
-'manage_transaction_archive' - Owner/Master level access
+'Owner' or 'SystemWallet' role only
 ```
 
 ### 🎯 **Usage Examples:**
@@ -155,8 +155,8 @@ https://gamestar77.online/admin/transaction-archive
 - **✅ Emergency restore capability**
 
 #### **🔒 Access Control:**
-- **✅ Permission-based access**
-- **✅ Owner/Master level only**
+- **✅ Role-based access**
+- **✅ Owner/SystemWallet level only**
 - **✅ All operations logged**
 - **✅ Audit trail maintained**
 

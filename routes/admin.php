@@ -282,8 +282,8 @@ Route::group([
         Route::get('/deleted-transactions', [LogController::class, 'deletedTransactions'])->name('deleted-transactions');
     });
 
-    // Transaction Archive Management (Owner/Master only)
-    Route::middleware(['permission:manage_transaction_archive'])->prefix('transaction-archive')->name('transaction-archive.')->group(function () {
+    // Transaction Archive Management (Owner/SystemWallet only)
+    Route::middleware(['auth'])->prefix('transaction-archive')->name('transaction-archive.')->group(function () {
         Route::get('/', [App\Http\Controllers\Admin\TransactionArchiveController::class, 'index'])->name('index');
         Route::get('/stats', [App\Http\Controllers\Admin\TransactionArchiveController::class, 'stats'])->name('stats');
         Route::post('/archive', [App\Http\Controllers\Admin\TransactionArchiveController::class, 'archive'])->name('archive');
