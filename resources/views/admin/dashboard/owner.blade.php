@@ -32,9 +32,25 @@
     .chart-container {
         background: white;
         border-radius: 10px;
-        padding: 20px;
+        padding: 15px;
         margin-bottom: 20px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .chart-container.compact {
+        padding: 12px 15px;
+    }
+    .chart-container.compact h5 {
+        margin-bottom: 10px;
+        font-size: 1rem;
+    }
+    .chart-wrapper {
+        position: relative;
+        height: 200px;
+        width: 100%;
+    }
+    .chart-wrapper canvas {
+        max-height: 200px !important;
+        width: 100% !important;
     }
     .recent-activity {
         background: white;
@@ -169,15 +185,19 @@
         <!-- Charts Row -->
         <div class="row">
             <div class="col-lg-6">
-                <div class="chart-container">
+                <div class="chart-container compact">
                     <h5><i class="fas fa-chart-line"></i> Daily Transactions (Last 30 Days)</h5>
-                    <canvas id="transactionChart" height="300"></canvas>
+                    <div class="chart-wrapper">
+                        <canvas id="transactionChart"></canvas>
+                    </div>
                 </div>
             </div>
             <div class="col-lg-6">
-                <div class="chart-container">
+                <div class="chart-container compact">
                     <h5><i class="fas fa-chart-bar"></i> Daily Game Bets (Last 30 Days)</h5>
-                    <canvas id="betChart" height="300"></canvas>
+                    <div class="chart-wrapper">
+                        <canvas id="betChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -286,9 +306,27 @@ $(document).ready(function() {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            aspectRatio: 2,
             scales: {
                 y: {
-                    beginAtZero: true
+                    beginAtZero: true,
+                    ticks: {
+                        maxTicksLimit: 5
+                    }
+                },
+                x: {
+                    ticks: {
+                        maxTicksLimit: 8
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 10
+                    }
                 }
             }
         }
@@ -315,9 +353,27 @@ $(document).ready(function() {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            aspectRatio: 2,
             scales: {
                 y: {
-                    beginAtZero: true
+                    beginAtZero: true,
+                    ticks: {
+                        maxTicksLimit: 5
+                    }
+                },
+                x: {
+                    ticks: {
+                        maxTicksLimit: 8
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 10
+                    }
                 }
             }
         }
