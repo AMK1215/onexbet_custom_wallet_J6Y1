@@ -1,0 +1,231 @@
+.twoDBetBtns{
+    position: fixed;
+    bottom: 0;
+    background: #0D1442;
+} 
+.cursorPointer{
+    cursor: pointer;
+}
+.activeNumber{
+    background-color: #FF1267 !important;
+    color: #fff !important;
+}
+
+.twoDNumbers {
+    margin-top: 10px;
+    min-height: 250px;
+    max-height: 300px;
+    margin-bottom: 50px;
+    width: 100%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    color: #fff;
+}
+
+.number {
+    font-size: 20px;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    color: #000;
+    font-weight: 400;
+}
+
+.numberContainer {
+    background: #E9E4E4;
+    border: 1px solid #FF1267;
+    width: 52px;
+    height: 52px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.bar {
+    width: 80%;
+    height: 5px;
+    background: #fff;
+    border-radius: 5px;
+    position: relative;
+    border: 1px solid gainsboro;
+}
+
+.activeBar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 3px;
+
+}
+
+.chooseNumFooter {
+    background: #10061E;
+    text-align: center;
+}
+
+.chooseNumDelBtn {
+    margin-right: 20px;
+    background: #FFDAD6 !important;
+    color: #410002;
+    border: none;
+    font-size: 13px;
+}
+
+.chooseNumBetBtn {
+    background: #A6FCE7;
+    color: #000;
+    border: none;
+    font-size: 13px;
+}
+
+.kwayNumber {
+    background: #431E77;
+    width: 75px;
+    height: 50px;
+    color: #fff;
+    border: none;
+    font-size: 20px;
+    font-weight: 600;
+    border-radius: 8px;
+}
+
+.amyanChooseModal {
+    height: 100vh !important;
+    width: 100vw !important;
+    top: 40px;
+    /* width: 390px; */
+    overflow-y: scroll;
+}
+
+
+.amyanChooseModal .modal-content {
+    background: #2B1C40 !important;
+    color: #fff;
+
+}
+
+.natkhatChooseNumber {
+    background: #431E77;
+    border: none;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 500;
+    border-radius: 8px;
+    padding: 6px;
+    margin-bottom: 8px;
+}
+
+.amyanChooseNumber {
+    width: 55px;
+    height:40px;
+    color: #fff;
+    border: none;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 8px;
+    /* margin: 10px; */
+}
+
+@media screen and (max-width: 478px) {
+    .twoDBetBtns{
+        width: 100%;
+        background-color: #0D1442;
+    } 
+}
+
+@media screen and (max-width:390px) {
+    .amyanChooseModal .modal-header {
+        margin-top: 1700px;
+    }
+}
+
+
+@media screen and (max-width:323px) {
+    .amyanChooseModal .modal-header {
+        margin-top: 2100px;
+    }
+}
+
+@media screen and (max-width:300px) {
+    .amyanChooseModal .modal-header {
+        margin-top: 2160px;
+    }
+}
+
+/* Modern Button */
+.modern-btn {
+  background: linear-gradient(90deg, #20e3b2 0%, #4f8cff 100%);
+  color: #fff !important;
+  border: none;
+  border-radius: 1.2rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px 0 rgba(80, 80, 200, 0.10);
+  transition: background 0.2s, transform 0.15s;
+  min-width: 60px;
+}
+.modern-btn:hover, .modern-btn:focus {
+  background: linear-gradient(90deg, #4f8cff 0%, #a259ff 100%);
+  color: #fff !important;
+  transform: scale(1.06);
+}
+
+/* Modern Modal/Offcanvas */
+.amyanChooseModal, .lottoModal {
+  background: linear-gradient(135deg, #f8fafc 60%, #e3f6fd 100%) !important;
+  border-radius: 1.5rem !important;
+  box-shadow: 0 4px 24px 0 rgba(80, 80, 200, 0.10) !important;
+}
+.amyanChooseModal .offcanvas-header, .lottoModal .modal-header {
+  border-bottom: none !important;
+}
+.amyanChooseModal .offcanvas-title, .lottoModal .modal-title {
+  color: #4f8cff !important;
+  font-weight: 700;
+}
+.natkhatChooseNumber {
+  background: linear-gradient(90deg, #a259ff 0%, #4f8cff 100%);
+  color: #fff !important;
+  border-radius: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  transition: background 0.2s, transform 0.15s;
+}
+.natkhatChooseNumber:hover, .natkhatChooseNumber:focus {
+  background: linear-gradient(90deg, #20e3b2 0%, #4f8cff 100%);
+  color: #fff !important;
+  transform: scale(1.06);
+}
+
+.natkhat-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+.natkhat-btn {
+  background: linear-gradient(90deg, #20e3b2 0%, #4f8cff 100%);
+  color: #fff !important;
+  border: none;
+  border-radius: 1.5rem;
+  font-weight: 600;
+  padding: 0.7rem 1.2rem;
+  font-size: 1rem;
+  box-shadow: 0 2px 8px 0 rgba(80, 80, 200, 0.10);
+  transition: background 0.2s, transform 0.15s;
+  text-align: left;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.natkhat-btn:hover, .natkhat-btn:focus {
+  background: linear-gradient(90deg, #4f8cff 0%, #a259ff 100%);
+  color: #fff !important;
+  transform: scale(1.04);
+}
+.natkhat-numbers {
+  font-size: 0.95em;
+  font-weight: 400;
+  opacity: 0.95;
+  letter-spacing: 0.5px;
+}

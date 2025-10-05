@@ -1,0 +1,35 @@
+.table-design {
+  width: 1020px;
+
+}
+
+
+
+@media (max-width: 1300px) {
+  width: 800px;
+
+}
+
+@media (max-width: 1152px) {
+  width: 800px;
+
+}
+
+@media (min-width: 577px) and (max-width: 768px) {
+  width: 500px;
+
+}
+
+
+@media (max-width: 576px) {
+  width: 500px;
+
+
+}
+
+@media (max-width: 420px) {
+  width: 500px;
+
+
+}
+

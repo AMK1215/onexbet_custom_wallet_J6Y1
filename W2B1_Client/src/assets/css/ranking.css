@@ -1,0 +1,73 @@
+.ranking{
+    min-height: 100vh;
+    background: #262626;
+}
+.winnerBg{
+    background: linear-gradient(180deg, #08363e 10%, #081E26 80%);
+}
+.dragon{
+    height: 140px;
+}
+.trophyGold{
+    margin-left: 5px;
+    width: 25px;
+    height: 25px;
+}
+.accordion-button{
+    background: linear-gradient(180deg, #c99f36 -5.81%, #fae488 43.27%, #fae488 45.71%, #fae488 48.07%, #fae488 50.7%, #fae488 53.63%, #f6df82 56.18%, #f2da7c 58.53%, #b3841b 100%) !important ;
+    color: #262626;
+    font-weight: 700;
+    box-shadow: 1px 1px 10px 1px rgba(0, 0, 0, .3);
+}
+.accordion-item{
+    border:2px solid #c99f36 !important;
+    color: #fff;
+    background: none !important;
+}
+.contactBox{
+    box-shadow: 1px 1px 10px 1px rgba(0, 0, 0, .3);
+    background: linear-gradient(180deg, #c99f36 -5.81%, #fae488 43.27%, #fae488 45.71%, #fae488 48.07%, #fae488 50.7%, #fae488 53.63%, #f6df82 56.18%, #f2da7c 58.53%, #b3841b 100%) !important ;
+    color: #262626;
+}
+.contactBox img{
+    height: 100px;
+}
+.rankingText{
+    font-size: 1em;
+    font-weight: 700;
+    color: #ddfffc;
+    text-shadow: 0 .5px white;
+    text-transform: uppercase;
+    margin: auto;
+}.trophy{
+    width: 120px;
+    height: 120px;
+}
+ 
+@media screen and (max-width:500px) {
+    .rankingText{
+        font-size: 18px;
+    }
+    .contactBox img{
+        height:80px;
+     }
+}
+@media screen and (max-width:440px) {
+    .rankingText{
+        font-size: 16px;
+    }
+    .dragon{
+        margin-left: -100px;
+        height: 140px;
+    }
+}
+@media screen and (max-width:380px) {
+    .trophy{
+        width: 100px;
+        height: 100px;
+    }
+    .dragon{
+        margin-left: -100px;
+        height: 120px;
+    }
+}

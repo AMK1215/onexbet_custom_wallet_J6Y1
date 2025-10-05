@@ -53,7 +53,7 @@
     <div class="container-fluid">
         <!-- Statistics Cards -->
         <div class="row mb-4">
-            <div class="col-lg-3 col-6">
+            <div class="col-lg-2 col-6">
                 <div class="small-box stats-card success">
                     <div class="inner">
                         <h3 id="total-transactions">-</h3>
@@ -64,7 +64,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-6">
+            <div class="col-lg-2 col-6">
                 <div class="small-box stats-card">
                     <div class="inner">
                         <h3 id="today-transactions">-</h3>
@@ -75,7 +75,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-6">
+            <div class="col-lg-2 col-6">
                 <div class="small-box stats-card warning">
                     <div class="inner">
                         <h3 id="webhook-logs-today">-</h3>
@@ -86,7 +86,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-6">
+            <div class="col-lg-2 col-6">
                 <div class="small-box stats-card danger">
                     <div class="inner">
                         <h3 id="failed-webhooks">-</h3>
@@ -94,6 +94,28 @@
                     </div>
                     <div class="icon">
                         <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-2 col-6">
+                <div class="small-box stats-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <div class="inner">
+                        <h3 id="user-activities-today">-</h3>
+                        <p>User Activities Today</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-user-clock"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-2 col-6">
+                <div class="small-box stats-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <div class="inner">
+                        <h3 id="unique-users-today">-</h3>
+                        <p>Unique Users Today</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-users"></i>
                     </div>
                 </div>
             </div>
@@ -239,6 +261,14 @@ function loadStats() {
             $('#today-transactions').text(data.today_transactions.toLocaleString());
             $('#webhook-logs-today').text(data.webhook_logs_today.toLocaleString());
             $('#failed-webhooks').text(data.failed_webhooks.toLocaleString());
+            
+            // New user activity statistics
+            if (data.user_activities_today !== undefined) {
+                $('#user-activities-today').text(data.user_activities_today.toLocaleString());
+            }
+            if (data.unique_users_today !== undefined) {
+                $('#unique-users-today').text(data.unique_users_today.toLocaleString());
+            }
         })
         .fail(function() {
             console.error('Failed to load statistics');

@@ -1,0 +1,14 @@
+.liveResult{
+    background: linear-gradient(104.11deg, #212D77 8.54%, #0788FF 92.1%);
+width: 80px;
+height: 80px;
+border-radius: 40px;
+font-size: 23px;
+font-weight: 800;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+.liveText{
+    color: #ABB1CC;
+}

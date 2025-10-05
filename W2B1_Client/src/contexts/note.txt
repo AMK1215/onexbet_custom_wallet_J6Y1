@@ -1,0 +1,230 @@
+import React, { useContext, useEffect, useState } from 'react';
+import { LanguageContext } from '../../contexts/LanguageContext';
+import { Spinner } from 'react-bootstrap';
+import { IoGameController } from 'react-icons/io5';
+import { useNavigate } from 'react-router-dom';
+import { GameContext } from '../../contexts/GameContext';
+import BASE_URL from '../../hooks/baseUrl';
+
+export default function ProviderList({ typeCode, type }) {
+    const { content } = useContext(LanguageContext);
+    const { updateType, updateProvider } = useContext(GameContext);
+    const navigate = useNavigate();
+
+    const [providers, setProviders] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (typeCode) {
+            setLoading(true);
+            fetch(`${BASE_URL}/providers/${typeCode}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                }
+            })
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                return res.json();
+            })
+            .then(data => {
+                setProviders(data.data || []);
+                setLoading(false);
+            })
+            .catch(error => {
+                console.error('Error fetching providers:', error);
+                setLoading(false);
+            });
+        }
+    }, [typeCode]);
+
+    if (loading) return <Spinner animation="border" />;
+
+    return (
+        <div className='scroll-row d-flex overflow-auto px-2'>
+            {providers.length === 0 ? (
+                <p className='text-center'>{content?.no_data}</p>
+            ) : (
+                providers.map((item, index) => (
+                    <div
+                        key={index}
+                        className="cursor-pointer col-lg-2 col-md-2 col-sm-2 col-5 mb-4 px-2"
+                    >
+                        <div className="gold-card rounded-4 overflow-hidden position-relative">
+                            <img
+                                src={item.img_url}
+                                className="img-fluid w-100 card-height"
+                                style={{
+                                    borderTopLeftRadius: "1rem",
+                                    borderTopRightRadius: "1rem",
+                                }}
+                                alt={item.product_name}
+                            />
+                            <div
+                                className="px-3 py-2"
+                                style={{
+                                    backgroundColor: "rgba(0, 0, 0, 0.7)",
+                                    color: "#fff",
+                                }}
+                            >
+                                <h6
+                                    className="mb-1"
+                                    style={{
+                                        whiteSpace: "nowrap",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        fontSize: "13px",
+                                    }}
+                                >
+                                    {item.product_name}
+                                </h6>
+                                <div className="d-flex align-items-center gap-2">
+                                    <small className="fw-medium text-white">{item.short_name}</small>
+                                </div>
+                            </div>
+                            <div
+                                className="gameCardLgBtn position-absolute bottom-0 start-50 translate-middle-x mb-2 px-3 py-1 rounded-pill shadow"
+                                style={{
+                                    background: "linear-gradient(90deg, #FFD700, #FFA500)",
+                                    color: "#000",
+                                    fontWeight: "600",
+                                    fontSize: "12px",
+                                    cursor: "pointer",
+                                }}
+                                onClick={() => {
+                                    navigate(`/?type=${type?.id}&provider=${item.id}`);
+                                    updateType(type.id);
+                                    updateProvider(item.id);
+                                }}
+                            >
+                                {content?.btn?.go_to_list}
+                            </div>
+                        </div>
+                    </div>
+                ))
+            )}
+        </div>
+    );
+}
+
+------------
+import React, { useContext, useState } from 'react'
+import { LanguageContext } from '../../contexts/LanguageContext';
+import { Spinner } from 'react-bootstrap';
+import { GameContext } from '../../contexts/GameContext';
+import BASE_URL from '../../hooks/baseUrl';
+
+export default function GameList({ loading, games }) {
+    const { content } = useContext(LanguageContext);
+    const { provider_name } = useContext(GameContext);
+    const [launchingGameId, setLaunchingGameId] = useState(null);
+    const [launchError, setLaunchError] = useState('');
+
+    if (loading) return <Spinner />;
+    
+    if (!games || games.length === 0) {
+        return <p className='text-center'>{content?.no_data}</p>;
+    }
+
+    console.log('games', games);
+
+    const handleLaunchGame = async (game) => {
+        setLaunchingGameId(game.id);
+        setLaunchError('');
+        try {
+            const res = await fetch(`${BASE_URL}/seamless/launch-game`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                },
+                body: JSON.stringify({
+                    game_code: game.game_code,
+                    product_code: game.product_code,
+                    game_type: game.game_type,
+                }),
+            });
+            const result = await res.json();
+            if (result.code === 200 && result.url) {
+                window.open(result.url, '_blank', 'noopener');
+            } else {
+                setLaunchError(result.message || 'Failed to launch game.');
+            }
+        } catch (e) {
+            setLaunchError('Network error. Please try again.');
+        } finally {
+            setLaunchingGameId(null);
+        }
+    };
+
+    return (
+        <div className="row">
+            {launchError && (
+                <div className="col-12 mb-3">
+                    <div className="alert alert-danger" role="alert">
+                        {launchError}
+                    </div>
+                </div>
+            )}
+            {games.map((item, index) => (
+                <div key={index} className="col-lg-2 col-md-2 col-sm-2 col-5 mb-4">
+                    <div className="gold-card rounded-4 overflow-hidden">
+                        <img
+                            src={item.img}
+                            className="img-fluid w-100 card-height"
+                            style={{
+                                borderTopLeftRadius: "1rem",
+                                borderTopRightRadius: "1rem",
+                            }}
+                            alt={item.name}
+                        />
+                        <div
+                            className="px-3 py-2"
+                            style={{
+                                backgroundColor: "rgba(0, 0, 0, 0.7)",
+                                color: "#fff",
+                            }}
+                        >
+                            <h6
+                                className="mb-1"
+                                style={{
+                                    whiteSpace: "nowrap",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    fontSize: "13px",
+                                }}
+                            >
+                                {item.name}
+                            </h6>
+                        </div>
+                        <div
+                            className="gameCardLgBtn position-absolute bottom-0 start-50 translate-middle-x mb-2 px-3 py-1 rounded-pill shadow"
+                            style={{
+                                background: "linear-gradient(90deg, #FFD700, #FFA500)",
+                                color: "#000",
+                                fontWeight: "600",
+                                fontSize: "12px",
+                                cursor: "pointer",
+                                opacity: launchingGameId === item.id ? 0.7 : 1,
+                            }}
+                            onClick={() => handleLaunchGame(item)}
+                            disabled={launchingGameId === item.id}
+                        >
+                            {launchingGameId === item.id ? (
+                                <Spinner animation="border" size="sm" />
+                            ) : (
+                                content?.btn?.play_game
+                            )}
+                        </div>
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+}
+

@@ -1,0 +1,27 @@
+.plusSign{
+    width: 32px;
+    height: 32px;
+    border-radius: 100%;
+    border: 1px solid white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #FF1267;
+}
+/* .userWalletContainer{
+   border-radius: 22px !important;
+    background:#2B3576;
+} */
+.moneyBag{
+    width: 20px;
+    height: 20px;
+}
+
+.userWalletContainer {
+    max-width: 420px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .card {
+    border: none !important;
+  }

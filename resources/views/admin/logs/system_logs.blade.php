@@ -146,49 +146,22 @@
             <div class="card-body">
                 @if(count($logs) > 0)
                     <div class="logs-container" style="max-height: 600px; overflow-y: auto;">
-                        @foreach($logs as $log)
-                            @php
-                                // Parse log entry
-                                $logParts = explode('] ', $log, 2);
-                                if (count($logParts) >= 2) {
-                                    $header = $logParts[0] . ']';
-                                    $content = $logParts[1];
-                                    
-                                    // Extract level
-                                    $level = 'INFO';
-                                    if (strpos($header, '.ERROR:') !== false) $level = 'ERROR';
-                                    elseif (strpos($header, '.WARNING:') !== false) $level = 'WARNING';
-                                    elseif (strpos($header, '.INFO:') !== false) $level = 'INFO';
-                                    elseif (strpos($header, '.DEBUG:') !== false) $level = 'DEBUG';
-                                    
-                                    // Extract timestamp
-                                    $timestamp = '';
-                                    if (preg_match('/\[(.*?)\]/', $header, $matches)) {
-                                        $timestamp = $matches[1];
-                                    }
-                                } else {
-                                    $header = '';
-                                    $content = $log;
-                                    $level = 'INFO';
-                                    $timestamp = '';
-                                }
-                            @endphp
-                            
-                            <div class="log-entry {{ $level }}">
+                        @foreach($logs as $logEntry)
+                            <div class="log-entry {{ $logEntry['level'] }}">
                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                     <div>
-                                        <span class="log-level {{ $level }}">{{ $level }}</span>
-                                        @if($timestamp)
-                                            <span class="log-timestamp ml-2">{{ $timestamp }}</span>
+                                        <span class="log-level {{ $logEntry['level'] }}">{{ $logEntry['level'] }}</span>
+                                        @if($logEntry['timestamp'])
+                                            <span class="log-timestamp ml-2">{{ $logEntry['timestamp'] }}</span>
                                         @endif
                                     </div>
                                     <button class="btn btn-sm btn-outline-secondary" 
-                                            onclick="copyToClipboard('{{ addslashes($log) }}')"
+                                            onclick="copyToClipboard('{{ addslashes($logEntry['content']) }}')"
                                             title="Copy to clipboard">
                                         <i class="fas fa-copy"></i>
                                     </button>
                                 </div>
-                                <div class="log-content">{{ $content }}</div>
+                                <div class="log-content">{{ $logEntry['content'] }}</div>
                             </div>
                         @endforeach
                     </div>
@@ -210,6 +183,7 @@
         </div>
 
         <!-- Log Statistics -->
+        @if(isset($logStats))
         <div class="row mt-4">
             <div class="col-md-3">
                 <div class="info-box">
@@ -218,7 +192,7 @@
                     </span>
                     <div class="info-box-content">
                         <span class="info-box-text">Errors</span>
-                        <span class="info-box-number">{{ collect($logs)->filter(fn($log) => strpos($log, '.ERROR:') !== false)->count() }}</span>
+                        <span class="info-box-number">{{ $logStats['error'] }}</span>
                     </div>
                 </div>
             </div>
@@ -229,7 +203,7 @@
                     </span>
                     <div class="info-box-content">
                         <span class="info-box-text">Warnings</span>
-                        <span class="info-box-number">{{ collect($logs)->filter(fn($log) => strpos($log, '.WARNING:') !== false)->count() }}</span>
+                        <span class="info-box-number">{{ $logStats['warning'] }}</span>
                     </div>
                 </div>
             </div>
@@ -240,7 +214,7 @@
                     </span>
                     <div class="info-box-content">
                         <span class="info-box-text">Info</span>
-                        <span class="info-box-number">{{ collect($logs)->filter(fn($log) => strpos($log, '.INFO:') !== false)->count() }}</span>
+                        <span class="info-box-number">{{ $logStats['info'] }}</span>
                     </div>
                 </div>
             </div>
@@ -251,11 +225,12 @@
                     </span>
                     <div class="info-box-content">
                         <span class="info-box-text">Debug</span>
-                        <span class="info-box-number">{{ collect($logs)->filter(fn($log) => strpos($log, '.DEBUG:') !== false)->count() }}</span>
+                        <span class="info-box-number">{{ $logStats['debug'] }}</span>
                     </div>
                 </div>
             </div>
         </div>
+        @endif
     </div>
 </section>
 @endsection

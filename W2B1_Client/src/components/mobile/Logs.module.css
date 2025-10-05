@@ -1,0 +1,27 @@
+.table-design {
+    width: 500px;
+    background-color: red;
+    color: red;
+}
+
+@media (max-width: 1300px) {
+
+
+}
+
+@media (min-width: 577px) and (max-width: 768px) {
+
+
+}
+
+
+@media (max-width: 576px) {
+
+
+}
+
+@media (max-width: 420px) {
+
+
+}
+

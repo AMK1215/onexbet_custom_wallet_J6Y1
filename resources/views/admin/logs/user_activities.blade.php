@@ -95,19 +95,41 @@
             <div class="card-body">
                 <form method="GET" action="{{ route('admin.logs.user-activities') }}">
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="form-group">
                                 <label>User Type</label>
                                 <select name="user_type" class="form-control">
                                     <option value="">All Types</option>
-                                    <option value="Player" {{ request('user_type') == 'Player' ? 'selected' : '' }}>Player</option>
-                                    <option value="Agent" {{ request('user_type') == 'Agent' ? 'selected' : '' }}>Agent</option>
-                                    <option value="Master" {{ request('user_type') == 'Master' ? 'selected' : '' }}>Master</option>
-                                    <option value="Owner" {{ request('user_type') == 'Owner' ? 'selected' : '' }}>Owner</option>
+                                    @if(isset($userTypes))
+                                        @foreach($userTypes as $type)
+                                            <option value="{{ $type }}" {{ request('user_type') == $type ? 'selected' : '' }}>{{ $type }}</option>
+                                        @endforeach
+                                    @else
+                                        <option value="Player" {{ request('user_type') == 'Player' ? 'selected' : '' }}>Player</option>
+                                        <option value="Agent" {{ request('user_type') == 'Agent' ? 'selected' : '' }}>Agent</option>
+                                        <option value="Master" {{ request('user_type') == 'Master' ? 'selected' : '' }}>Master</option>
+                                        <option value="Owner" {{ request('user_type') == 'Owner' ? 'selected' : '' }}>Owner</option>
+                                    @endif
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>IP Address</label>
+                                <input type="text" name="ip_address" class="form-control" 
+                                       value="{{ request('ip_address') }}" 
+                                       placeholder="IP Address">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Function Access</label>
+                                <input type="text" name="func_access" class="form-control" 
+                                       value="{{ request('func_access') }}" 
+                                       placeholder="Function">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
                             <div class="form-group">
                                 <label>Search</label>
                                 <input type="text" name="search" class="form-control" 
@@ -126,110 +148,124 @@
                             </div>
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Date From</label>
+                                <input type="date" name="date_from" class="form-control" 
+                                       value="{{ request('date_from') }}">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Date To</label>
+                                <input type="date" name="date_to" class="form-control" 
+                                       value="{{ request('date_to') }}">
+                            </div>
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>
 
-        <!-- Users List -->
-        <div class="row">
-            @forelse($users as $user)
-                <div class="col-lg-6 col-xl-4 mb-4">
-                    <div class="card user-card" onclick="window.location.href='{{ route('admin.player.show', $user->id) }}'">
-                        <div class="card-header">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h5 class="mb-0">{{ $user->name }}</h5>
-                                    <small class="text-muted">{{ $user->user_name }}</small>
-                                </div>
-                                <div class="text-right">
-                                    <span class="user-type {{ $user->type }}">{{ $user->type }}</span>
-                                    <br>
-                                    <span class="balance-display">{{ number_format($user->balance, 2) }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div class="row mb-3">
-                                <div class="col-6">
-                                    <small class="text-muted">User ID</small><br>
-                                    <strong>{{ $user->id }}</strong>
-                                </div>
-                                <div class="col-6">
-                                    <small class="text-muted">Email</small><br>
-                                    <strong>{{ $user->email ?? 'N/A' }}</strong>
-                                </div>
-                            </div>
-                            
-                            @if($user->customTransactions && $user->customTransactions->count() > 0)
-                                <div class="mb-3">
-                                    <small class="text-muted">Recent Transactions</small>
-                                    <div class="mt-2">
-                                        @foreach($user->customTransactions->take(3) as $transaction)
-                                            <div class="transaction-item {{ $transaction->type }}">
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <div>
-                                                        <strong>{{ ucfirst($transaction->type) }}</strong>
-                                                        <br>
-                                                        <small class="text-muted">{{ $transaction->transaction_name }}</small>
-                                                    </div>
-                                                    <div class="text-right">
-                                                        <span class="transaction-amount {{ $transaction->type === 'deposit' ? 'positive' : 'negative' }}">
-                                                            {{ $transaction->type === 'deposit' ? '+' : '-' }}{{ number_format($transaction->amount, 2) }}
-                                                        </span>
-                                                        <br>
-                                                        <small class="text-muted">{{ $transaction->created_at->format('M d, H:i') }}</small>
-                                                    </div>
+        <!-- User Logs Table -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-user-clock"></i> User Activity Logs
+                </h3>
+                <div class="card-tools">
+                    <span class="badge badge-info">{{ $userLogs->total() }} entries</span>
+                </div>
+            </div>
+            <div class="card-body">
+                @if($userLogs->count() > 0)
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>User</th>
+                                    <th>Type</th>
+                                    <th>IP Address</th>
+                                    <th>Function Access</th>
+                                    <th>Last Update</th>
+                                    <th>Created At</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($userLogs as $userLog)
+                                    <tr>
+                                        <td>{{ $userLog->id }}</td>
+                                        <td>
+                                            @if($userLog->user)
+                                                <div>
+                                                    <strong>{{ $userLog->user->name }}</strong><br>
+                                                    <small class="text-muted">{{ $userLog->user->user_name }}</small>
                                                 </div>
-                                            </div>
-                                        @endforeach
-                                        
-                                        @if($user->customTransactions->count() > 3)
-                                            <div class="text-center mt-2">
-                                                <small class="text-muted">
-                                                    +{{ $user->customTransactions->count() - 3 }} more transactions
-                                                </small>
-                                            </div>
-                                        @endif
-                                    </div>
-                                </div>
-                            @else
-                                <div class="text-center text-muted py-3">
-                                    <i class="fas fa-inbox fa-2x mb-2"></i>
-                                    <p class="mb-0">No recent transactions</p>
-                                </div>
-                            @endif
-                            
-                            <div class="d-flex justify-content-between align-items-center">
-                                <small class="text-muted">
-                                    Last Activity: {{ $user->updated_at->diffForHumans() }}
-                                </small>
-                                <a href="{{ route('admin.logs.custom-transactions', ['user_id' => $user->id]) }}" 
-                                   class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-list"></i> View All
-                                </a>
-                            </div>
-                        </div>
+                                            @else
+                                                <span class="text-muted">User not found</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if($userLog->user)
+                                                <span class="user-type {{ $userLog->user->type }}">{{ $userLog->user->type }}</span>
+                                            @else
+                                                <span class="text-muted">-</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            <code>{{ $userLog->ip_address }}</code>
+                                        </td>
+                                        <td>
+                                            @if($userLog->func_access)
+                                                <span class="badge badge-secondary">{{ $userLog->func_access }}</span>
+                                            @else
+                                                <span class="text-muted">-</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if($userLog->lastupdate)
+                                                {{ date('Y-m-d H:i:s', $userLog->lastupdate) }}
+                                            @else
+                                                <span class="text-muted">-</span>
+                                            @endif
+                                        </td>
+                                        <td>{{ $userLog->created_at->format('Y-m-d H:i:s') }}</td>
+                                        <td>
+                                            @if($userLog->user)
+                                                <a href="{{ route('admin.player.show', $userLog->user->id) }}" 
+                                                   class="btn btn-sm btn-outline-primary" title="View User">
+                                                    <i class="fas fa-user"></i>
+                                                </a>
+                                                <a href="{{ route('admin.logs.custom-transactions', ['user_id' => $userLog->user->id]) }}" 
+                                                   class="btn btn-sm btn-outline-info" title="View Transactions">
+                                                    <i class="fas fa-list"></i>
+                                                </a>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
-                </div>
-            @empty
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-body text-center py-5">
-                            <i class="fas fa-users fa-3x text-muted mb-3"></i>
-                            <h5 class="text-muted">No users found</h5>
-                            <p class="text-muted">Try adjusting your search criteria or check back later.</p>
-                        </div>
+                @else
+                    <div class="text-center py-5">
+                        <i class="fas fa-user-clock fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No user activity logs found</h5>
+                        <p class="text-muted">Try adjusting your search criteria or check back later.</p>
                     </div>
-                </div>
-            @endforelse
+                @endif
+            </div>
         </div>
 
         <!-- Pagination -->
-        @if($users->hasPages())
+        @if($userLogs->hasPages())
         <div class="row">
             <div class="col-12">
                 <div class="d-flex justify-content-center">
-                    {{ $users->appends(request()->query())->links() }}
+                    {{ $userLogs->appends(request()->query())->links() }}
                 </div>
             </div>
         </div>

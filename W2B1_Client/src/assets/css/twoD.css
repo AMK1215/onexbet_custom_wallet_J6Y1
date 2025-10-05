@@ -1,0 +1,285 @@
+/* Custom styles for 2D pages with Bootstrap 5 compatibility */
+
+.lottoHomeContainer {
+    background: #fff;
+    color: #4B5AB5;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 20px;
+}
+
+.twoDBetBtn {
+    position: fixed;
+    bottom: 40px;
+    left: 46%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    width: max-content;
+}
+
+.modal {
+    top: 20% !important;
+    margin: 0 auto !important;
+    left: auto !important;
+}
+
+.timeBtn {
+    background: #4B5AB5;
+    width: 100%;
+    text-align: center;
+}
+
+/* Bootstrap 5 compatible hover effects */
+.hover-bg-light:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Custom cursor for clickable elements */
+.cursor-pointer {
+    cursor: pointer;
+}
+
+/* Custom progress bar colors for 2D numbers */
+.progress-bar-green {
+    background-color: #00CD15 !important;
+}
+
+.progress-bar-orange {
+    background-color: #FF7A00 !important;
+}
+
+.progress-bar-red {
+    background-color: #FF0000 !important;
+}
+
+.progress-bar-gray {
+    background-color: #AE9F9E !important;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 680px) {
+    .twoDBetBtn {
+        left: 40%;
+    }
+}
+
+@media screen and (max-width: 360px) {
+    .twoDBetBtn {
+        left: 35%;
+    }
+}
+
+/* Additional Bootstrap 5 enhancements */
+.card-hover:hover {
+    transform: translateY(-2px);
+    transition: transform 0.2s ease-in-out;
+}
+
+.btn-hover:hover {
+    transform: scale(1.05);
+    transition: transform 0.2s ease-in-out;
+}
+
+/* Custom number grid styling */
+.number-grid-item {
+    transition: all 0.2s ease-in-out;
+}
+
+.number-grid-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.number-grid-item.active {
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+}
+
+/* Custom modal styling */
+.modal-content {
+    border-radius: 1rem !important;
+    border: none !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
+}
+
+.modal-header {
+    border-bottom: 1px solid #dee2e6 !important;
+    padding: 1rem 1.5rem !important;
+}
+
+.modal-body {
+    padding: 1.5rem !important;
+}
+
+.modal-footer {
+    border-top: 1px solid #dee2e6 !important;
+    padding: 1rem 1.5rem !important;
+}
+
+/* Custom form styling */
+.form-control:focus {
+    border-color: #4B5AB5 !important;
+    box-shadow: 0 0 0 0.2rem rgba(75, 90, 181, 0.25) !important;
+}
+
+/* Custom button styling */
+.btn-primary {
+    background-color: #4B5AB5 !important;
+    border-color: #4B5AB5 !important;
+}
+
+.btn-primary:hover {
+    background-color: #3a4a9a !important;
+    border-color: #3a4a9a !important;
+}
+
+.btn-danger {
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+}
+
+.btn-danger:hover {
+    background-color: #c82333 !important;
+    border-color: #bd2130 !important;
+}
+
+.btn-success {
+    background-color: #198754 !important;
+    border-color: #198754 !important;
+}
+
+.btn-success:hover {
+    background-color: #157347 !important;
+    border-color: #146c43 !important;
+}
+
+.twoD-gradient-bg {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #20e3b2 0%, #4f8cff 60%, #a259ff 100%);
+}
+
+.twoD-card {
+    background: rgba(255,255,255,0.95);
+    border-radius: 1.5rem;
+    box-shadow: 0 4px 24px 0 rgba(80, 80, 200, 0.10);
+    border: none;
+}
+
+.twoD-number-card {
+    transition: transform 0.15s, box-shadow 0.15s;
+    border-radius: 1rem !important;
+    cursor: pointer;
+    border: none !important;
+}
+
+.twoD-number-card:hover, .twoD-number-card.active {
+    transform: scale(1.08);
+    box-shadow: 0 6px 24px 0 rgba(80, 80, 200, 0.18);
+    background: linear-gradient(90deg, #4f8cff 60%, #a259ff 100%) !important;
+    color: #fff !important;
+}
+
+.twoD-fab {
+    background: linear-gradient(90deg, #20e3b2 0%, #4f8cff 100%);
+    color: #fff;
+    border: none;
+    border-radius: 2rem;
+    box-shadow: 0 4px 24px 0 rgba(80, 80, 200, 0.18);
+    font-size: 1.2rem;
+    padding: 0.8rem 2.5rem;
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%);
+    z-index: 100;
+    transition: background 0.2s;
+}
+
+.twoD-fab:hover {
+    background: linear-gradient(90deg, #4f8cff 0%, #a259ff 100%);
+}
+
+.twoD-confirm-bg {
+    background: linear-gradient(135deg, #f8fafc 60%, #e3f6fd 100%);
+    min-height: 100vh;
+}
+
+.twoD-card {
+    background: rgba(255,255,255,0.98);
+    border-radius: 1.5rem;
+    box-shadow: 0 4px 24px 0 rgba(80, 80, 200, 0.10);
+    border: none;
+}
+
+.bet-card {
+    background: #f4f8fb;
+    border-radius: 1rem;
+    box-shadow: 0 2px 8px 0 rgba(80, 80, 200, 0.06);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.bet-number {
+    color: #4f8cff;
+}
+
+.tag-btn {
+    border: none;
+    border-radius: 1rem;
+    padding: 0.3rem 1rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: background 0.2s, color 0.2s;
+}
+
+.tag-blue {
+    background: #e3f0ff;
+    color: #4f8cff;
+}
+
+.tag-blue:hover {
+    background: #4f8cff;
+    color: #fff;
+}
+
+.tag-red {
+    background: #ffe3e3;
+    color: #ff4f81;
+}
+
+.tag-red:hover {
+    background: #ff4f81;
+    color: #fff;
+}
+
+.modern-btn {
+    background: linear-gradient(90deg, #20e3b2 0%, #4f8cff 100%);
+    color: #fff !important;
+    border: none;
+    border-radius: 1.2rem;
+    font-weight: 600;
+    transition: background 0.2s, transform 0.15s;
+}
+
+.modern-btn:hover, .modern-btn:focus {
+    background: linear-gradient(90deg, #4f8cff 0%, #a259ff 100%);
+    color: #fff !important;
+    transform: scale(1.06);
+}
+
+.modern-confirm-btn {
+    background: linear-gradient(90deg, #20e3b2 0%, #4f8cff 100%);
+    color: #fff;
+    border: none;
+    border-radius: 2rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    padding: 0.8rem 2.5rem;
+    box-shadow: 0 4px 24px 0 rgba(80, 80, 200, 0.18);
+    transition: background 0.2s;
+}
+
+.modern-confirm-btn:hover {
+    background: linear-gradient(90deg, #4f8cff 0%, #a259ff 100%);
+}
