@@ -106,36 +106,89 @@ class TransactionArchiveService
      */
     private function createArchiveTable(): void
     {
-        $sql = "
-            CREATE TABLE IF NOT EXISTS archived_custom_transactions (
-                id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-                original_id BIGINT UNSIGNED,
-                user_id BIGINT UNSIGNED,
-                target_user_id BIGINT UNSIGNED,
-                amount DECIMAL(64,2),
-                type VARCHAR(255),
-                transaction_name VARCHAR(255),
-                old_balance DECIMAL(64,2),
-                new_balance DECIMAL(64,2),
-                meta JSON,
-                uuid VARCHAR(255),
-                confirmed BOOLEAN,
-                deleted_at TIMESTAMP NULL,
-                deleted_by BIGINT UNSIGNED NULL,
-                deleted_reason TEXT NULL,
-                created_at TIMESTAMP NULL,
-                updated_at TIMESTAMP NULL,
-                archived_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                archive_batch_id VARCHAR(255),
-                INDEX idx_original_id (original_id),
-                INDEX idx_user_id (user_id),
-                INDEX idx_target_user_id (target_user_id),
-                INDEX idx_archived_at (archived_at),
-                INDEX idx_archive_batch_id (archive_batch_id)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        ";
+        // Check if we're using PostgreSQL
+        $driver = DB::getDriverName();
+        
+        if ($driver === 'pgsql') {
+            // PostgreSQL syntax
+            $sql = "
+                CREATE TABLE IF NOT EXISTS archived_custom_transactions (
+                    id BIGSERIAL PRIMARY KEY,
+                    original_id BIGINT,
+                    user_id BIGINT,
+                    target_user_id BIGINT,
+                    amount DECIMAL(64,2),
+                    type VARCHAR(255),
+                    transaction_name VARCHAR(255),
+                    old_balance DECIMAL(64,2),
+                    new_balance DECIMAL(64,2),
+                    meta JSONB,
+                    uuid VARCHAR(255),
+                    confirmed BOOLEAN DEFAULT TRUE,
+                    deleted_at TIMESTAMP NULL,
+                    deleted_by BIGINT NULL,
+                    deleted_reason TEXT NULL,
+                    created_at TIMESTAMP NULL,
+                    updated_at TIMESTAMP NULL,
+                    archived_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    archive_batch_id VARCHAR(255)
+                )
+            ";
+        } else {
+            // MySQL syntax
+            $sql = "
+                CREATE TABLE IF NOT EXISTS archived_custom_transactions (
+                    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                    original_id BIGINT UNSIGNED,
+                    user_id BIGINT UNSIGNED,
+                    target_user_id BIGINT UNSIGNED,
+                    amount DECIMAL(64,2),
+                    type VARCHAR(255),
+                    transaction_name VARCHAR(255),
+                    old_balance DECIMAL(64,2),
+                    new_balance DECIMAL(64,2),
+                    meta JSON,
+                    uuid VARCHAR(255),
+                    confirmed BOOLEAN DEFAULT TRUE,
+                    deleted_at TIMESTAMP NULL,
+                    deleted_by BIGINT UNSIGNED NULL,
+                    deleted_reason TEXT NULL,
+                    created_at TIMESTAMP NULL,
+                    updated_at TIMESTAMP NULL,
+                    archived_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    archive_batch_id VARCHAR(255),
+                    INDEX idx_original_id (original_id),
+                    INDEX idx_user_id (user_id),
+                    INDEX idx_target_user_id (target_user_id),
+                    INDEX idx_archived_at (archived_at),
+                    INDEX idx_archive_batch_id (archive_batch_id)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            ";
+        }
 
         DB::statement($sql);
+        
+        // Create indexes for PostgreSQL
+        if ($driver === 'pgsql') {
+            $indexes = [
+                'CREATE INDEX IF NOT EXISTS idx_archived_original_id ON archived_custom_transactions(original_id)',
+                'CREATE INDEX IF NOT EXISTS idx_archived_user_id ON archived_custom_transactions(user_id)',
+                'CREATE INDEX IF NOT EXISTS idx_archived_target_user_id ON archived_custom_transactions(target_user_id)',
+                'CREATE INDEX IF NOT EXISTS idx_archived_archived_at ON archived_custom_transactions(archived_at)',
+                'CREATE INDEX IF NOT EXISTS idx_archived_batch_id ON archived_custom_transactions(archive_batch_id)',
+                'CREATE INDEX IF NOT EXISTS idx_archived_user_type ON archived_custom_transactions(user_id, type)',
+                'CREATE INDEX IF NOT EXISTS idx_archived_target_type ON archived_custom_transactions(target_user_id, type)',
+                'CREATE INDEX IF NOT EXISTS idx_archived_created_at ON archived_custom_transactions(created_at)'
+            ];
+            
+            foreach ($indexes as $index) {
+                try {
+                    DB::statement($index);
+                } catch (\Exception $e) {
+                    // Index might already exist, ignore error
+                }
+            }
+        }
     }
 
     /**
@@ -244,15 +297,28 @@ class TransactionArchiveService
     private function getTableSize(string $tableName): float
     {
         try {
-            $result = DB::select("
-                SELECT 
-                    ROUND(((data_length + index_length) / 1024 / 1024), 2) AS size_mb
-                FROM information_schema.TABLES 
-                WHERE table_schema = DATABASE() 
-                AND table_name = ?
-            ", [$tableName]);
+            $driver = DB::getDriverName();
+            
+            if ($driver === 'pgsql') {
+                // PostgreSQL syntax
+                $result = DB::select("
+                    SELECT 
+                        ROUND(pg_total_relation_size(?) / 1024.0 / 1024.0, 2) AS size_mb
+                ", [$tableName]);
+                
+                return $result[0]->size_mb ?? 0;
+            } else {
+                // MySQL syntax
+                $result = DB::select("
+                    SELECT 
+                        ROUND(((data_length + index_length) / 1024 / 1024), 2) AS size_mb
+                    FROM information_schema.TABLES 
+                    WHERE table_schema = DATABASE() 
+                    AND table_name = ?
+                ", [$tableName]);
 
-            return $result[0]->size_mb ?? 0;
+                return $result[0]->size_mb ?? 0;
+            }
         } catch (\Exception $e) {
             return 0;
         }
@@ -269,19 +335,38 @@ class TransactionArchiveService
         ];
 
         try {
-            // 1. Analyze table
-            DB::statement('ANALYZE TABLE custom_transactions');
-            $results['operations'][] = 'Table analyzed';
+            $driver = DB::getDriverName();
+            
+            if ($driver === 'pgsql') {
+                // PostgreSQL optimization
+                // 1. Analyze table
+                DB::statement('ANALYZE custom_transactions');
+                $results['operations'][] = 'Table analyzed';
 
-            // 2. Optimize table
-            DB::statement('OPTIMIZE TABLE custom_transactions');
-            $results['operations'][] = 'Table optimized';
+                // 2. Reindex table (PostgreSQL equivalent of optimize)
+                DB::statement('REINDEX TABLE custom_transactions');
+                $results['operations'][] = 'Table reindexed';
 
-            // 3. Check and repair if needed
-            $checkResult = DB::select('CHECK TABLE custom_transactions');
-            if ($checkResult[0]->Msg_text !== 'OK') {
-                DB::statement('REPAIR TABLE custom_transactions');
-                $results['operations'][] = 'Table repaired';
+                // 3. Vacuum table
+                DB::statement('VACUUM custom_transactions');
+                $results['operations'][] = 'Table vacuumed';
+
+            } else {
+                // MySQL optimization
+                // 1. Analyze table
+                DB::statement('ANALYZE TABLE custom_transactions');
+                $results['operations'][] = 'Table analyzed';
+
+                // 2. Optimize table
+                DB::statement('OPTIMIZE TABLE custom_transactions');
+                $results['operations'][] = 'Table optimized';
+
+                // 3. Check and repair if needed
+                $checkResult = DB::select('CHECK TABLE custom_transactions');
+                if ($checkResult[0]->Msg_text !== 'OK') {
+                    DB::statement('REPAIR TABLE custom_transactions');
+                    $results['operations'][] = 'Table repaired';
+                }
             }
 
             $results['success'] = true;
