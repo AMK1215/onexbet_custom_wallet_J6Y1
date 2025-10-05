@@ -37,7 +37,8 @@ Route::group([
 
     Route::post('balance-up', [HomeController::class, 'balanceUp'])->name('balanceUp');
 
-    Route::get('logs/{id}', [HomeController::class, 'logs'])->name('logs');
+    // User logs route - moved after system logs to avoid conflict
+    Route::get('user-logs/{id}', [HomeController::class, 'logs'])->name('user-logs');
 
     // to do
     Route::get('/changePassword/{user}', [HomeController::class, 'changePassword'])->name('changePassword');

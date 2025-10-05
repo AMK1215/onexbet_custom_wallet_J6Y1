@@ -121,7 +121,7 @@
                                                             <i class="fas fa-minus text-white mr-1"></i>
                                                             Withdrawl
                                                         </a>
-                                                        <a href="{{ route('admin.logs', $user->id) }}"
+                                                        <a href="{{ route('admin.user-logs', $user->id) }}"
                                                             data-bs-toggle="tooltip" data-bs-original-title="Agent logs"
                                                             class="btn btn-info btn-sm">
                                                             <i class="fas fa-right-left text-white mr-1"></i>

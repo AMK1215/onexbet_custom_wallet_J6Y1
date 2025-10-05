@@ -120,7 +120,7 @@
                                                             Withdrawl
                                                         </a>
 
-                                                        <a href="{{ route('admin.logs', $user->id) }}"
+                                                        <a href="{{ route('admin.user-logs', $user->id) }}"
                                                             data-bs-toggle="tooltip" data-bs-original-title="Reports"
                                                             class="btn btn-info btn-sm">
                                                             <i class="fas fa-right-left text-white me-1"></i>
